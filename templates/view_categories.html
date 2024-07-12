@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories</title>
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id="topbar">
+        <img src="/static/img/LOGO.png" width="100px" height="auto" alt="logo"/>
+    </div>
+    <div id="flex">
+        <div id="navbar">
+            <!-- home -->
+            <a href="/home">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Home
+                </div>
+            </a>
+            <!-- home -->
+            <a href="/view_categories">
+                <div class="active">
+                    <img src="/static/img/category - white.png" alt="category">
+                    Categories
+                </div>
+            </a>
+            <!-- create post -->
+            {{if .LoggedInUser}}
+            <a href="/create_post">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Create Post
+                </div>
+            </a>
+            {{end}}
+            <!-- profile -->
+            {{if .LoggedInUser}}
+            <a href="/profile">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Profile
+                </div>
+            </a>
+            {{end}}
+            <!-- logout -->
+            {{if .LoggedInUser}}
+            <a href="/logout">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Log out
+                </div>
+            </a>
+            {{else}}
+            <a href="/login">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Login
+                </div>
+            </a>
+            {{end}}
+        </div>
+        <div id="middle-posts">
+            <div class="greetings">
+                <h1>Categories</h1>
+                <br>
+            </div>
+            <div id="second-bar">
+                <a href="/create_category">
+                    <button class="pink-rounded-button">
+                        Create a new category
+                    </button>
+                </a><br>
+            </div>
+            <div id="category-list">
+                {{range .Categories}}
+                <a href="/category/{{.CategoryID}}">
+                    <div class="category-box">
+                        {{.CategoryName}}
+                    </div>
+                </a>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        body{
+            /* background-color: #fbfafb; */
+            background-image: url(/static/img/background.png);
+            background-size: cover; /* Optional: Cover the entire viewport */
+            background-repeat: no-repeat; /* Optional: Prevent repeating */
+            background-attachment: fixed; /* Make the background fixed */
+        }
+    </style>
+</body>
+</html>

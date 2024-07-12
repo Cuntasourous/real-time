@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Username}} Profile</title>
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id="topbar">
+        <img src="/static/img/LOGO.png" width="100px" height="auto" alt="logo"/>
+    </div>
+    <div id="flex">
+        <div id="navbar">
+            <!-- home -->
+            <a href="/home">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Home
+                </div>
+            </a>
+            <!-- home -->
+            <a href="/view_categories">
+                <div class="nav-item">
+                    <img src="/static/img/category - white.png" alt="category">
+                    Categories
+                </div>
+            </a>
+            <!-- create post -->
+            {{if .Username}}
+            <a href="/create_post">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Create Post
+                </div>
+            </a>
+            {{end}}
+            <!-- profile -->
+            {{if .Username}}
+            <a href="/profile">
+                <div class="active">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Profile
+                </div>
+            </a>
+            {{end}}
+            <!-- logout -->
+            {{if .Username}}
+            <a href="/logout">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Log out
+                </div>
+            </a>
+            {{else}}
+            <a href="/login">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Login
+                </div>
+            </a>
+            {{end}}
+        </div>
+        <div id="right-profile">
+            <div class="greetings">
+                {{if .Username}}
+                <h3>Profile</h3>
+                {{end}}
+            </div>
+            <!-- bg -->
+            <div class="profile-banner">
+                <img src="/static/img/bg-1.png" width="100%">
+            </div>
+            <div id="user-info">
+                <div id="profile-info">
+                    <div class="profile-pic">
+                        <img src="/static/img/pfp.png" width="150px" height="150px" alt="pfp">
+                        <h2><b>{{.Username}}</b></h2>
+                        <p>{{.Email}}</p>
+                        <div class="member">
+                            <h6>Member since:</h6>
+                            <p>{{.DateCreated.Format "January 2, 2006"}}</p>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-column">
+                                <h4>Posts Created</h4>
+                                <h5>{{.PostCount}}</h5>
+                            </div>
+                            <div class="stat-column">
+                                <h4>Comments Created</h4>
+                                <h5>{{.CommentCount}}</h5>
+                            </div>
+                            <div class="stat-column">
+                                <h4>Posts Liked</h4>
+                                <h5>{{.LikedPostCount}}</h5>
+                            </div>
+                            <div class="stat-column"></div>
+                            <a href="/logout">
+                                <button class="outline-pink-btn">Logout</button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-history" class="container">
+                <div class="tabs">
+                    <div class="tab active" data-target="posts">Posts</div>
+                    <div class="tab" data-target="comments">Comments</div>
+                    <div class="tab" data-target="liked-posts">Liked Posts</div>
+                </div>
+                
+                <div class="content">
+                    <div class="posts active">
+                        <!-- Your posts content here -->
+                        {{if .Posts}}
+                        {{range .Posts}}
+                        <a href="/view_post/{{.PostID}}">
+                        <div class="post-structure">
+                              <div class="username">
+                                <h5>{{.Username}}</h5>
+                                <p>posted on ({{.PostDate}})</p>
+                              </div>
+                              <!-- <div class="post-category">
+                                {{range .Categories}}
+                                  {{.}}
+                                {{end}}
+                              </div> -->
+                              <div class="post-text">
+                                {{.PostText}}
+                              </div>
+                            <div class="post-options">
+                              <b>
+                                Likes <span id="like-count-{{.PostID}}">   {{.LikeCount}}</span>
+                              </b>
+
+                              <b>
+                                Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
+                              </b>
+                            </div>
+                        </div>
+                        </a>
+                        {{end}}
+                      {{else}}
+                        <p>No posts found.</p>
+                      {{end}}
+                    </div>
+                
+                    <div class="comments">
+                            {{range .Comments}}
+                            <a href="/view_post/{{.PostID}}"></a>
+                            <div class="post-structure">
+                                  <div class="username">
+                                    <h5>{{.Username}}</h5>
+                                    <p>posted on ({{.CommentDate}})</p>
+                                  </div>
+                                  <div class="post-text">
+                                    {{.CommentText}}
+                                  </div>
+                                
+                                <div class="post-options">
+                                  <b>
+                                    Likes <span id="like-count-{{.PostID}}">   {{.LikeCount}}</span>
+                                  </b>
+                                  <b>
+                                    Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
+                                  </b>
+                                </div>
+                            </div>
+                        </a>
+                            {{else}}
+                            <li>No comments yet.</li>
+                            {{end}}
+                    </div>
+                
+                    <div class="liked-posts">
+                            {{range .LikedPosts}}
+                            <a href="/view_post/{{.PostID}}">
+                                <a href="/view_post/{{.PostID}}">
+                                    <div class="post-structure">
+                                          <div class="username">
+                                            <h5>{{.Username}}</h5>
+                                            <p>posted on ({{.PostDate}})</p>
+                                          </div>
+                                          <div class="post-text">
+                                            {{.PostText}}
+                                          </div>
+                                        <div class="post-options">
+                                          <b>
+                                            Likes <span id="like-count-{{.PostID}}">   {{.LikeCount}}</span>
+                                          </b>
+            
+                                          <b>
+                                            Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
+                                          </b>
+                                        </div>
+                                    </div>
+                                    </a>
+                            </a>
+                            {{else}}
+                            <p>No liked posts yet.</p> 
+                            {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        body{
+            /* background-color: #fbfafb; */
+            /* background-image: url(/static/img/background.png);
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed; */
+        }
+    </style>
+<!-- 
+    <h1>Profile for {{.Username}}</h1>
+    <p>Email: {{.Email}}</p>
+    <p>Member since: {{.DateCreated.Format "January 2, 2006"}}</p>
+
+    <h2>Your Posts</h2>
+    <ul>
+        {{range .Posts}}
+        <li><a href="/view_post/{{.PostID}}">{{.PostText}}</a></li>
+        {{else}}
+        <li>No posts yet.</li>
+        {{end}}
+    </ul>
+
+    <h2>Your Comments</h2>
+    <ul>
+        {{range .Comments}}
+        <li>On post <a href="/view_post/{{.PostID}}">View Post</a>: {{.CommentText}}</li>
+        {{else}}
+        <li>No comments yet.</li>
+        {{end}}
+    </ul>
+
+    <h2>Posts You've Liked</h2>
+    <ul>
+        {{range .LikedPosts}}
+        <li><a href="/view_post/{{.PostID}}">{{.PostText}}</a></li>
+        {{else}}
+        <li>No liked posts yet.</li>
+        {{end}}
+    </ul> -->
+
+    <script>
+        const tabs = document.querySelectorAll('.tab');
+        const contentSections = document.querySelectorAll('.posts, .comments, .liked-posts');
+        
+        tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            // Remove active class from all tabs
+            tabs.forEach(t => t.classList.remove('active'));
+        
+            // Add active class to the clicked tab
+            tab.classList.add('active');
+        
+            // Get the target content section
+            const target = tab.dataset.target;
+        
+            // Remove active class from all content sections
+            contentSections.forEach(section => section.classList.remove('active'));
+        
+            // Add active class to the target content section
+            document.querySelector(`.${target}`).classList.add('active');
+          });
+        });
+    </script>
+</body>
+</html>
