@@ -1548,6 +1548,7 @@ func CommentDislikeHandler(w http.ResponseWriter, r *http.Request) {
 	err = db.QueryRow("SELECT COUNT(*) FROM CommentDislikes WHERE user_id = ? AND comment_id = ?", userID, commentID).Scan(&existingDislikes)
 	if err != nil {
 		http.Error(w, "Database error1", http.StatusInternalServerError)
+		fmt.Println("err:", err)
 		return
 	}
 
