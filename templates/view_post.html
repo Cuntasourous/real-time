@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Post.PostText}}</title>
     <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
 <body>
     <div id="topbar">
@@ -175,6 +176,34 @@
 </div>
 </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- <script>
+        $(document).ready(function() {
+            $('#comment-form').submit(function(e) {
+                e.preventDefault();
+                var commentText = $('textarea[name="comment_text"]').val();
+                $.ajax({
+                    url: '/add_comment/{{.Post.PostID}}',
+                    type: 'POST',
+                    data: { comment_text: commentText },
+                    dataType: 'json',
+                    success: function(response) {
+                        var newComment = '<li>' +
+                            '<b>' + response.username + '</b> - ' + response.comment_text + ' (' + response.comment_date + ')' +
+                            '<br>' +
+                            'Likes: <span id="like-count-' + response.comment_id + '">' + response.like_count + '</span> | ' +
+                            'Dislikes: <span id="dislike-count-' + response.comment_id + '">' + response.dislike_count + '</span>' +
+                            '</li>';
+                        $('#comments-list').append(newComment);
+                        $('textarea[name="comment_text"]').val('');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error adding comment:", error);
+                        alert("Error adding comment. Please try again.");
+                    }
+                });
+            });
+        });
+    </script> -->
     <script>
         $('#comment-form').submit(function(e) {
             e.preventDefault();
@@ -190,7 +219,7 @@
             // Wait for 2 seconds and then refresh the page
             setTimeout(function() {
             location.reload();
-            }, 0.1);
+            }, 2000);
             }
             });
             });
