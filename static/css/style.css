@@ -272,14 +272,14 @@ body{
 }
 
 #flex #navbar a .nav-item img{
-    width: 15px;
+    width: 20px;
     height: auto;
     margin-left: 30px;
     margin-right: 25px;
 }
 
 #flex #navbar a .active img{
-    width: 15px;
+    width: 20px;
     height: auto;
     margin-left: 30px;
     margin-right: 25px;
