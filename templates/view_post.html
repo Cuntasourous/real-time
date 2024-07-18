@@ -176,32 +176,24 @@
 </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#comment-form').submit(function(e) {
-                e.preventDefault();
-                var commentText = $('textarea[name="comment_text"]').val();
-                $.ajax({
-                    url: '/add_comment/{{.Post.PostID}}',
-                    type: 'POST',
-                    data: { comment_text: commentText },
-                    dataType: 'json',
-                    success: function(response) {
-                        var newComment = '<li>' +
-                            '<b>' + response.username + '</b> - ' + response.comment_text + ' (' + response.comment_date + ')' +
-                            '<br>' +
-                            'Likes: <span id="like-count-' + response.comment_id + '">' + response.like_count + '</span> | ' +
-                            'Dislikes: <span id="dislike-count-' + response.comment_id + '">' + response.dislike_count + '</span>' +
-                            '</li>';
-                        $('#comments-list').append(newComment);
-                        $('textarea[name="comment_text"]').val('');
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error adding comment:", error);
-                        alert("Error adding comment. Please try again.");
-                    }
-                });
+        $('#comment-form').submit(function(e) {
+            e.preventDefault();
+            var commentText = $('textarea[name="comment_text"]').val();
+            $.ajax({
+            url: '/add_comment/{{.Post.PostID}}',
+            type: 'POST',
+            data: { comment_text: commentText },
+            success: function(data) {
+            // Append the new comment to the comments list
+            $('#comments-list').append('<li>' + data.comment_text + '</li>');
+
+            // Wait for 2 seconds and then refresh the page
+            setTimeout(function() {
+            location.reload();
+            }, 5);
+            }
             });
-        });
+            });
     </script>
         <style>
             body{
