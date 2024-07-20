@@ -3,7 +3,6 @@ package forum
 import (
 	"html/template"
 	"net/http"
-	"time"
 )
 
 func ViewProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +50,7 @@ func getUserProfile(userID int) (UserProfile, error) {
 	}
 	profile.Username = user.Username
 	profile.Email = user.Email
-	profile.DateCreated, _ = time.Parse("2006-01-02 15:04:05", user.DateCreated)
+	profile.DateCreated = user.DateCreated
 
 	// Fetch user's posts and count
 	rows, err := Db.Query("SELECT post_id, user_id, post_text, post_date, like_count, dislike_count FROM Posts WHERE user_id = ?", userID)

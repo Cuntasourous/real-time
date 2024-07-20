@@ -11,11 +11,11 @@ var SessionDuration = 24 * time.Hour // Session duration (24 hours)
 
 // User struct
 type User struct {
-	UserID      int    `json:"user_id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	DateCreated string `json:"date_created"`
+	UserID      int       `json:"user_id"`
+	Username    string    `json:"username"`
+	Email       string    `json:"email"`
+	Password    string    `json:"password"`
+	DateCreated time.Time `json:"date_created"`
 }
 
 // Post struct
