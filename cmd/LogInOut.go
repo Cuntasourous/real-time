@@ -2,12 +2,13 @@ package forum
 
 import (
 	"database/sql"
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +23,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 		// Basic validation
 		if username == "" || password == "" {
-			http.Error(w, "Please fill in all fields", http.StatusBadRequest)
+			// http.Error(w, "Please fill in all fields", http.StatusBadRequest)
+			ErrorHandler(w, r, http.StatusBadRequest)
 			return
 		}
 
@@ -30,7 +32,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		tx, err := Db.Begin()
 		if err != nil {
 			log.Printf("Error starting transaction: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		defer func() {
@@ -45,11 +47,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			if err == sql.ErrNoRows {
 				log.Printf("User not found for username: %s", username)
-				http.Error(w, "Invalid username or password", http.StatusBadRequest)
+				// http.Error(w, "Invalid username or password", http.StatusBadRequest)
+				ErrorHandler(w, r, http.StatusBadRequest)
 				return
 			}
 			log.Printf("Error querying user: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -57,7 +60,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
 			log.Printf("Password mismatch for username: %s", username)
-			http.Error(w, "Invalid username or password", http.StatusBadRequest)
+			// http.Error(w, "Invalid username or password", http.StatusBadRequest)
+			ErrorHandler(w, r, http.StatusBadRequest)
 			return
 		}
 
@@ -69,7 +73,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		_, err = Db.Exec("INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)", sessionID, user.UserID, time.Now(), expiresAt)
 		if err != nil {
 			log.Printf("Error inserting session: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -77,7 +81,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		err = tx.Commit()
 		if err != nil {
 			log.Printf("Error committing transaction: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -100,12 +104,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	} else {
 		t, err := template.ParseFiles("templates/login.html")
 		if err != nil {
-			http.Error(w, "Error parsing template", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		err = t.Execute(w, nil)
 		if err != nil {
-			http.Error(w, "Error executing template", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -120,7 +124,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -128,7 +132,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	tx, err := Db.Begin()
 	if err != nil {
 		log.Printf("Error starting transaction: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	defer func() {
@@ -141,7 +145,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	_, err = tx.Exec("DELETE FROM sessions WHERE id = ?", cookie.Value)
 	if err != nil {
 		log.Printf("Error deleting session: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -149,7 +153,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	err = tx.Commit()
 	if err != nil {
 		log.Printf("Error committing transaction: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 

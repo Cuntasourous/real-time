@@ -19,7 +19,8 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 		// Handle POST request
 		handleCreateCategory(w, r)
 	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		// http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		ErrorHandler(w, r, http.StatusBadRequest)
 	}
 }
 
@@ -41,7 +42,7 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := Db.Query("SELECT category_id, category_name FROM Categories")
 	if err != nil {
-		http.Error(w, "Error fetching categories", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -49,7 +50,7 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var category Category
 		if err := rows.Scan(&category.CategoryID, &category.CategoryName); err != nil {
-			http.Error(w, "Error scanning categories", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		categories = append(categories, category)
@@ -66,7 +67,7 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 	t, err := template.ParseFiles("templates/view_categories.html")
 	if err != nil {
-		http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -96,7 +97,8 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/category/")
 	categoryID, err := strconv.Atoi(path)
 	if err != nil {
-		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		// http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -105,9 +107,11 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	err = Db.QueryRow("SELECT category_name FROM Categories WHERE category_id = ?", categoryID).Scan(&categoryName)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Category not found", http.StatusNotFound)
+			// http.Error(w, "Category not found", http.StatusNotFound)
+			ErrorHandler(w, r, http.StatusNotFound)
 		} else {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			// http.Error(w, "Database error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -121,7 +125,8 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
         WHERE pc.category_id = ?
     `, categoryID)
 	if err != nil {
-		http.Error(w, "Error fetching posts", http.StatusInternalServerError)
+		// http.Error(w, "Error fetching posts", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -131,7 +136,8 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 		var post Post
 		err := rows.Scan(&post.PostID, &post.UserID, &post.PostText, &post.PostDate, &post.LikeCount, &post.DislikeCount, &post.Username)
 		if err != nil {
-			http.Error(w, "Error scanning posts", http.StatusInternalServerError)
+			// http.Error(w, "Error scanning posts", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		posts = append(posts, post)
@@ -151,13 +157,15 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse and execute the template
 	t, err := template.ParseFiles("templates/category_posts.html")
 	if err != nil {
-		http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		// http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	err = t.Execute(w, data)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 	}
 }
 
@@ -195,15 +203,15 @@ func renderCategoryForm(w http.ResponseWriter, r *http.Request) {
 
 	t, err := template.ParseFiles("templates/create_category.html")
 	if err != nil {
-		log.Printf("Error parsing template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		// log.Printf("Error parsing template: %v", err)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	err = t.Execute(w, data)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 }
@@ -239,7 +247,8 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	categoryName := r.FormValue("category_name")
 	if categoryName == "" {
 		log.Println("Empty category name submitted")
-		http.Error(w, "Please provide a category name", http.StatusBadRequest)
+		ErrorHandler(w, r, http.StatusBadRequest)
+		// http.Error(w, "Please provide a category name", http.StatusBadRequest)
 		return
 	}
 
@@ -249,7 +258,7 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	tx, err := Db.Begin()
 	if err != nil {
 		log.Printf("Error starting transaction: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	defer tx.Rollback() // Roll back the transaction if it's not committed
@@ -258,7 +267,8 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	result, err := tx.Exec("INSERT INTO Categories(category_name) VALUES(?)", categoryName)
 	if err != nil {
 		log.Printf("Error inserting category: %v", err)
-		http.Error(w, "Error creating category", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		// http.Error(w, "Error creating category", http.StatusInternalServerError)
 		return
 	}
 
@@ -273,7 +283,8 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	// Commit the transaction
 	if err = tx.Commit(); err != nil {
 		log.Printf("Error committing transaction: %v", err)
-		http.Error(w, "Error creating category", http.StatusInternalServerError)
+		// http.Error(w, "Error creating category", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 

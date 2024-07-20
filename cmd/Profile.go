@@ -21,19 +21,19 @@ func ViewProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := getUserProfile(userID)
 	if err != nil {
-		http.Error(w, "Error fetching user profile", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	t, err := template.ParseFiles("templates/view_profile.html")
 	if err != nil {
-		http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	err = t.Execute(w, profile)
 	if err != nil {
-		http.Error(w, "Error executing template", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 }

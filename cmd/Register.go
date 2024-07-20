@@ -13,7 +13,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 
 		if username == "" || email == "" || password == "" {
-			http.Error(w, "Please fill in all fields", http.StatusBadRequest)
+			// http.Error(w, "Please fill in all fields", http.StatusBadRequest)
+			ErrorHandler(w, r, http.StatusBadRequest)
 			return
 		}
 
@@ -21,7 +22,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		hashedPassword, err := hashPassword(password)
 		if err != nil {
 			log.Printf("Error hashing password: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -29,7 +30,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		tx, err := Db.Begin()
 		if err != nil {
 			log.Printf("Error starting transaction: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		defer tx.Rollback() // Roll back the transaction if it's not committed
@@ -38,7 +39,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		stmt, err := tx.Prepare("INSERT INTO users(username, email, password) VALUES(?, ?, ?)")
 		if err != nil {
 			log.Printf("Error preparing SQL statement: %v", err)
-			http.Error(w, "Error preparing SQL statement", http.StatusInternalServerError)
+			// http.Error(w, "Error preparing SQL statement", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		defer stmt.Close()
@@ -47,7 +49,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		result, err := stmt.Exec(username, email, hashedPassword)
 		if err != nil {
 			log.Printf("Error inserting user: %v", err)
-			http.Error(w, "Error inserting user", http.StatusInternalServerError)
+			// http.Error(w, "Error inserting user", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -55,7 +58,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		err = tx.Commit()
 		if err != nil {
 			log.Printf("Error committing transaction: %v", err)
-			http.Error(w, "Error committing transaction", http.StatusInternalServerError)
+			// http.Error(w, "Error committing transaction", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -70,12 +74,13 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		t, err := template.ParseFiles("templates/register.html")
 		if err != nil {
-			http.Error(w, "Error parsing template", http.StatusInternalServerError)
+			// http.Error(w, "Error parsing template", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		err = t.Execute(w, nil)
 		if err != nil {
-			http.Error(w, "Error executing template", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}

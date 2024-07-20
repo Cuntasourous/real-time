@@ -52,7 +52,7 @@ func handleAddComment(w http.ResponseWriter, r *http.Request, postID int) {
 	tx, err := Db.Begin()
 	if err != nil {
 		log.Printf("Error starting transaction: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	defer tx.Rollback() // Roll back the transaction if it's not committed
@@ -61,7 +61,8 @@ func handleAddComment(w http.ResponseWriter, r *http.Request, postID int) {
 	result, err := tx.Exec("INSERT INTO Comments(comment_text) VALUES(?)", commentText)
 	if err != nil {
 		log.Printf("Error inserting comment: %v", err)
-		http.Error(w, "Error creating comment", http.StatusInternalServerError)
+		// http.Error(w, "Error creating comment", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -76,7 +77,8 @@ func handleAddComment(w http.ResponseWriter, r *http.Request, postID int) {
 	// Commit the transaction
 	if err = tx.Commit(); err != nil {
 		log.Printf("Error committing transaction: %v", err)
-		http.Error(w, "Error creating comment", http.StatusInternalServerError)
+		// http.Error(w, "Error creating comment", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -107,19 +109,21 @@ func HandleAddCommentAJAX(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		// http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
 	postID, err := getPostIDFromURL(r)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
 	commentText := r.FormValue("comment_text")
 	if commentText == "" {
-		http.Error(w, "Comment text is required", http.StatusBadRequest)
+		// http.Error(w, "Comment text is required", http.StatusBadRequest)
+		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -127,7 +131,7 @@ func HandleAddCommentAJAX(w http.ResponseWriter, r *http.Request) {
 	result, err := Db.Exec("INSERT INTO Comments(post_id, user_id, comment_text, comment_date) VALUES(?, ?, ?, datetime('now'))", postID, userID, commentText)
 	if err != nil {
 		log.Printf("Error inserting comment: %v", err)
-		http.Error(w, "Error creating comment", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -143,7 +147,7 @@ func HandleAddCommentAJAX(w http.ResponseWriter, r *http.Request) {
 		&comment.CommentID, &comment.PostID, &comment.UserID, &comment.CommentText, &comment.CommentDate, &comment.LikeCount, &comment.DislikeCount, &comment.Username)
 	if err != nil {
 		log.Printf("Error fetching new comment: %v", err)
-		http.Error(w, "Error fetching new comment", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 

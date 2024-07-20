@@ -7,7 +7,7 @@ import (
 )
 
 // Helper function to set a cookie
-func setCookie(w http.ResponseWriter, name string, value string, expires time.Time) {
+func SetCookie(w http.ResponseWriter, name string, value string, expires time.Time) {
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,

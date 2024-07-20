@@ -102,7 +102,7 @@
         <div id="comment-form">
             {{if .LoggedInUser}}
                 <form method="POST" action="">
-                    <textarea name="comment_text" placeholder="Enter your comment"></textarea>
+                    <textarea name="comment_text" placeholder="Enter your comment" required></textarea>
                     <button id="reply-button" type="submit">Reply</button>
                 </form>
             {{else}}

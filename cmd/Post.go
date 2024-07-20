@@ -36,7 +36,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		selectedCategories := r.Form["categories"] // Get all selected categories
 
 		if post_text == "" {
-			http.Error(w, "Please add some text", http.StatusBadRequest)
+			// http.Error(w, "Please add some text", http.StatusBadRequest)
+			ErrorHandler(w, r, http.StatusBadRequest)
 			return
 		}
 
@@ -44,7 +45,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		tx, err := Db.Begin()
 		if err != nil {
 			log.Printf("Error starting transaction: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		defer tx.Rollback() // Roll back the transaction if it's not committed
@@ -53,7 +54,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		stmt, err := tx.Prepare("INSERT INTO Posts(user_id, post_text) VALUES(?, ?)")
 		if err != nil {
 			log.Printf("Error preparing SQL statement: %v", err)
-			http.Error(w, "Error preparing SQL statement", http.StatusInternalServerError)
+			// http.Error(w, "Error preparing SQL statement", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		defer stmt.Close()
@@ -61,7 +63,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		result, err := stmt.Exec(userID, post_text)
 		if err != nil {
 			log.Printf("Error inserting post: %v", err)
-			http.Error(w, "Error inserting post", http.StatusInternalServerError)
+			// http.Error(w, "Error inserting post", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -69,7 +72,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		lastInsertID, err := result.LastInsertId()
 		if err != nil {
 			log.Printf("Error getting last inserted ID: %v", err)
-			http.Error(w, "Error getting last inserted ID", http.StatusInternalServerError)
+			// http.Error(w, "Error getting last inserted ID", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -79,14 +83,16 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 			err := Db.QueryRow("SELECT category_id FROM Categories WHERE category_name = ?", categoryName).Scan(&categoryID)
 			if err != nil {
 				log.Printf("Error getting category ID: %v", err)
-				http.Error(w, "Error getting category ID", http.StatusInternalServerError)
+				// http.Error(w, "Error getting category ID", http.StatusInternalServerError)
+				ErrorHandler(w, r, http.StatusInternalServerError)
 				return
 			}
 
 			_, err = tx.Exec("INSERT INTO Post_Categories(post_id, category_id) VALUES(?, ?)", lastInsertID, categoryID)
 			if err != nil {
 				log.Printf("Error inserting post-category association: %v", err)
-				http.Error(w, "Error inserting post-category association", http.StatusInternalServerError)
+				// http.Error(w, "Error inserting post-category association", http.StatusInternalServerError)
+				ErrorHandler(w, r, http.StatusInternalServerError)
 				return
 			}
 		}
@@ -95,7 +101,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		err = tx.Commit()
 		if err != nil {
 			log.Printf("Error committing transaction: %v", err)
-			http.Error(w, "Error committing transaction", http.StatusInternalServerError)
+			// http.Error(w, "Error committing transaction", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -105,7 +112,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		rows, err := Db.Query("SELECT category_name FROM Categories")
 		if err != nil {
 			log.Printf("Error getting categories: %v", err)
-			http.Error(w, "Error getting categories", http.StatusInternalServerError)
+			// http.Error(w, "Error getting categories", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -115,7 +123,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 			var category Category
 			err := rows.Scan(&category.CategoryName)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				// http.Error(w, err.Error(), http.StatusInternalServerError)
+				ErrorHandler(w, r, http.StatusInternalServerError)
 				return
 			}
 			categories = append(categories, category)
@@ -133,12 +142,14 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		// Render the create_post template
 		t, err := template.ParseFiles("templates/create_post.html")
 		if err != nil {
-			http.Error(w, "Error parsing template", http.StatusInternalServerError)
+			// http.Error(w, "Error parsing template", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 		err = t.Execute(w, data)
 		if err != nil {
-			http.Error(w, "Error executing template", http.StatusInternalServerError)
+			// http.Error(w, "Error executing template", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -162,7 +173,8 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	// Extract the post_id from the URL
 	postID, err := getPostIDFromURL(r)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		// http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -194,21 +206,23 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	// Fetch the post data from the database using postID
 	post, err := getPostByID(postID)
 	if err != nil {
-		http.Error(w, "Post not found", http.StatusNotFound)
+		// http.Error(w, "Post not found", http.StatusNotFound)
+		ErrorHandler(w, r, http.StatusNotFound)
 		return
 	}
 
 	// Fetch categories for this post
 	categories, err := getCategoriesByPostID(postID)
 	if err != nil {
-		http.Error(w, "Error fetching categories", http.StatusInternalServerError)
+		// http.Error(w, "Error fetching categories", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	// Fetch comments for the post
 	comments, err := getCommentsByPostID(postID)
 	if err != nil {
-		http.Error(w, "Error fetching comments", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -236,14 +250,16 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	// Parse the template file
 	t, err := template.ParseFiles("templates/view_post.html")
 	if err != nil {
-		http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		// http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	// Execute the template with the data
 	err = t.Execute(w, data)
 	if err != nil {
-		http.Error(w, "Error executing template", http.StatusInternalServerError)
+		// http.Error(w, "Error executing template", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 }

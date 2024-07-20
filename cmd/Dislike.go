@@ -13,7 +13,8 @@ func DislikeHandler(w http.ResponseWriter, r *http.Request) {
 	postIDStr := strings.TrimPrefix(r.URL.Path, "/dislike/")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		// http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -30,7 +31,8 @@ func DislikeHandler(w http.ResponseWriter, r *http.Request) {
 	var existingDislikes int
 	err = Db.QueryRow("SELECT COUNT(*) FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingDislikes)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -39,14 +41,16 @@ func DislikeHandler(w http.ResponseWriter, r *http.Request) {
 		// User has already disliked the post, remove their like
 		_, err = Db.Exec("DELETE FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			// http.Error(w, "Database error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	} else {
 		// User has not disliked the post, add their dislike
 		_, err = Db.Exec("INSERT INTO PostDislikes (user_id, post_id) VALUES (?, ?)", userID, postID)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			// http.Error(w, "Database error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -55,14 +59,16 @@ func DislikeHandler(w http.ResponseWriter, r *http.Request) {
 	var existingLikes int
 	err = Db.QueryRow("SELECT COUNT(*) FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingLikes)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	if existingLikes > 0 {
 		// User has already liked the post, remove their like
 		_, err = Db.Exec("DELETE FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			// http.Error(w, "Database error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -70,14 +76,16 @@ func DislikeHandler(w http.ResponseWriter, r *http.Request) {
 	// Update the like count in the posts table
 	_, err = Db.Exec("UPDATE posts SET like_count = (SELECT COUNT(*) FROM PostLikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	// Update the dislike count in the posts table
 	_, err = Db.Exec("UPDATE posts SET dislike_count = (SELECT COUNT(*) FROM PostDislikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -90,7 +98,8 @@ func CommentDislikeHandler(w http.ResponseWriter, r *http.Request) {
 	commentIDStr := strings.TrimPrefix(r.URL.Path, "/cdislike/")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		// http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -107,8 +116,9 @@ func CommentDislikeHandler(w http.ResponseWriter, r *http.Request) {
 	var existingDislikes int
 	err = Db.QueryRow("SELECT COUNT(*) FROM CommentDislikes WHERE user_id = ? AND comment_id = ?", userID, commentID).Scan(&existingDislikes)
 	if err != nil {
-		http.Error(w, "Database error1", http.StatusInternalServerError)
-		fmt.Println("err:", err)
+		// http.Error(w, "Database error1", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		// fmt.Println("err:", err)
 		return
 	}
 
@@ -117,14 +127,16 @@ func CommentDislikeHandler(w http.ResponseWriter, r *http.Request) {
 		// User has already disliked the post, remove their like
 		_, err = Db.Exec("DELETE FROM CommentDislikes WHERE user_id = ? AND comment_id = ?", userID, commentID)
 		if err != nil {
-			http.Error(w, "Database error2", http.StatusInternalServerError)
+			// http.Error(w, "Database error2", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	} else {
 		// User has not disliked the post, add their dislike
 		_, err = Db.Exec("INSERT INTO CommentDislikes (user_id, comment_id) VALUES (?, ?)", userID, commentID)
 		if err != nil {
-			http.Error(w, "Database error3", http.StatusInternalServerError)
+			// http.Error(w, "Database error3", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -133,14 +145,16 @@ func CommentDislikeHandler(w http.ResponseWriter, r *http.Request) {
 	var existingLikes int
 	err = Db.QueryRow("SELECT COUNT(*) FROM CommentLikes WHERE user_id = ? AND comment_id = ?", userID, commentID).Scan(&existingLikes)
 	if err != nil {
-		http.Error(w, "Database error4", http.StatusInternalServerError)
+		// http.Error(w, "Database error4", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	if existingLikes > 0 {
 		// User has already liked the post, remove their like
 		_, err = Db.Exec("DELETE FROM CommentLikes WHERE user_id = ? AND comment_id = ?", userID, commentID)
 		if err != nil {
-			http.Error(w, "Database error5", http.StatusInternalServerError)
+			// http.Error(w, "Database error5", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -148,14 +162,16 @@ func CommentDislikeHandler(w http.ResponseWriter, r *http.Request) {
 	// Update the like count in the posts table
 	_, err = Db.Exec("UPDATE comments SET like_count = (SELECT COUNT(*) FROM CommentLikes WHERE comment_id = ?) WHERE comment_id = ?", commentID, commentID)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	// Update the dislike count in the posts table
 	_, err = Db.Exec("UPDATE comments SET dislike_count = (SELECT COUNT(*) FROM CommentDislikes WHERE comment_id = ?) WHERE comment_id = ?", commentID, commentID)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -163,7 +179,8 @@ func CommentDislikeHandler(w http.ResponseWriter, r *http.Request) {
 	postID, err := getPostIDFromCommentID(commentID)
 	if err != nil {
 		log.Printf("Error getting post ID: %v", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -202,6 +219,7 @@ func DislikeHandler2(w http.ResponseWriter, r *http.Request) {
 	var existingDislikes int
 	err = Db.QueryRow("SELECT COUNT(*) FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingDislikes)
 	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
@@ -211,14 +229,16 @@ func DislikeHandler2(w http.ResponseWriter, r *http.Request) {
 		// User has already disliked the post, remove their like
 		_, err = Db.Exec("DELETE FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			// http.Error(w, "Database error", http.StatusInternalServerError)
 			return
 		}
 	} else {
 		// User has not disliked the post, add their dislike
 		_, err = Db.Exec("INSERT INTO PostDislikes (user_id, post_id) VALUES (?, ?)", userID, postID)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			// http.Error(w, "Database error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -227,14 +247,16 @@ func DislikeHandler2(w http.ResponseWriter, r *http.Request) {
 	var existingLikes int
 	err = Db.QueryRow("SELECT COUNT(*) FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingLikes)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	if existingLikes > 0 {
 		// User has already liked the post, remove their like
 		_, err = Db.Exec("DELETE FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			// http.Error(w, "Database error", http.StatusInternalServerError)
+			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -242,14 +264,16 @@ func DislikeHandler2(w http.ResponseWriter, r *http.Request) {
 	// Update the like count in the posts table
 	_, err = Db.Exec("UPDATE posts SET like_count = (SELECT COUNT(*) FROM PostLikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	// Update the dislike count in the posts table
 	_, err = Db.Exec("UPDATE posts SET dislike_count = (SELECT COUNT(*) FROM PostDislikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 

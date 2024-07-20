@@ -31,7 +31,6 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
 
 }
 
-
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	ErrorHandler(w, r, http.StatusNotFound)
-  }
+}
