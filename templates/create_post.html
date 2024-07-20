@@ -83,7 +83,7 @@
             <div id="category-checklist">
                 {{range .Categories}}
                 <div class="category-item">
-                    <input type="checkbox" name="categories" value="{{.CategoryName}}">
+                    <input type="checkbox" name="categories" value="{{.CategoryName}}" required>
                     <label for="{{.CategoryName}}">{{.CategoryName}}</label><br>
                 </div>
                 {{end}}

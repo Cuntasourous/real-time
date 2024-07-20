@@ -579,6 +579,11 @@ body{
 	background: #FF5252; /* 色 */
 }
 
+.guest-btn{
+    margin-left: 220px;
+    margin-bottom: 20px;
+}
+
 /* ------------------------------------------ VIEW CATEGORIES ------------------------------------------------- */
 
 #category-list{
@@ -981,4 +986,32 @@ body{
     color: #7777778d;
     font-weight: bold;
     text-transform: uppercase;
+}
+
+/* ------------------------------------------ ERROR PAGES ------------------------------------------------- */
+
+.banner-right{
+    margin-left: 35rem;
+    width: 718px;
+    height: 581px;
+    padding-top: 107px;
+}
+
+.banner-right .error-message{
+    margin-top: -14px;
+    margin-left: 276px;
+    padding-top: 0px;
+    text-align: center;
+}
+
+.banner-right .error-message h1{
+    font-size: 120px;
+    margin-bottom: -20px;
+    margin-left: -30px;
+}
+
+.banner-right .error-message h2{
+    color: #444344;
+    text-transform: uppercase;
+    margin-bottom: -10px;
 }
