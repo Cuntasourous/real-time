@@ -142,7 +142,7 @@
     </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', (event) => {
+    document.addEventListener('DOMContentLoaded', (event) => {
     const likeButtons = document.querySelectorAll('.like-button');
     const dislikeButtons = document.querySelectorAll('.dislike-button');
 
@@ -173,7 +173,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
                     // Update the heart colors
                     const heartLike = button.querySelector('.heartLike');
-                    const heartDislike = document.querySelector(`.heartDislike`);
+                    const dislikeButton = document.querySelector(`.dislike-button[data-post-id="${postId}"]`);
+                    const heartDislike = dislikeButton.querySelector('.heartDislike');
 
                     if (!heartLike.classList.contains('red')) {
                         heartLike.classList.add('red');
@@ -217,7 +218,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
                     // Update the heart colors
                     const heartDislike = button.querySelector('.heartDislike');
-                    const heartLike = document.querySelector(`.heartLike`);
+                    const likeButton = document.querySelector(`.like-button[data-post-id="${postId}"]`);
+                    const heartLike = likeButton.querySelector('.heartLike');
 
                     if (!heartDislike.classList.contains('red')) {
                         heartDislike.classList.add('red');
@@ -235,6 +237,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 });
 
-    </script>
+</script>
 </body>
 </html>
