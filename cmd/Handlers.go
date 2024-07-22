@@ -22,7 +22,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// http.Redirect(w, r, "/login", http.StatusSeeOther)
 		// return
-		fmt.Println("guest")
+		fmt.Println("guest", err)
 	}
 
 	var username string

@@ -31,7 +31,7 @@ func main() {
 	http.HandleFunc("/dislike/", forum.DislikeHandler)
 	http.HandleFunc("/clike/", forum.CommentikeHandler)
 	http.HandleFunc("/cdislike/", forum.CommentDislikeHandler)
-	http.HandleFunc("/like2/", forum.LikeHandler2)
+	// http.HandleFunc("/like2/", forum.LikeHandler2)
 	http.HandleFunc("/dislike2/", forum.DislikeHandler2)
 	http.HandleFunc("/home", forum.Handler)
 	http.HandleFunc("/", forum.HandleRoot)
@@ -49,10 +49,13 @@ func main() {
 	http.HandleFunc("/add_comment/", forum.HandleAddCommentAJAX)
 	http.HandleFunc("/profile", forum.ViewProfileHandler)
 	//Error pages
-	http.HandleFunc("/404", forum.NotFound)
 	// Serve static files
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	js := http.FileServer(http.Dir("js"))
+	http.Handle("/js/", http.StripPrefix("/js/", js))
+
 	//go live
 	log.Print("http://localhost:8080/")
 	http.ListenAndServe(":8080", nil)

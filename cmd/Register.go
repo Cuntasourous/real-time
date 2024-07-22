@@ -1,9 +1,13 @@
 package forum
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -69,6 +73,49 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			log.Printf("Last inserted ID: %d", lastInsertID)
 		}
+
+		// Create a new session
+		sessionID := uuid.New().String()
+		expiresAt := time.Now().Add(24 * time.Hour) // Set session to expire after 24 hours
+
+		rows, err := Db.Query("SELECT user_id FROM users WHERE username = ?", username)
+		if err != nil {
+			fmt.Println("error: ", err )
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var userID int
+		for rows.Next() {
+			if err := rows.Scan(&userID); err != nil {
+				ErrorHandler(w, r, http.StatusInternalServerError)
+				return
+			}
+		}
+
+		// Insert the session into the database
+		_, err = Db.Exec("INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)", sessionID, userID, time.Now(), expiresAt)
+		if err != nil {
+			log.Printf("Error inserting session: %v", err)
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+
+		// Set the session cookie
+		cookie := &http.Cookie{
+			Name:     "forum_session",
+			Value:    sessionID,
+			Expires:  expiresAt,
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode, // Change to http.SameSiteNoneMode for testing
+		}
+		http.SetCookie(w, cookie)
+		log.Printf("Set-Cookie: %s=%s; Path=%s; Expires=%s; HttpOnly=%t; SameSite=%s",
+			cookie.Name, cookie.Value, cookie.Path, cookie.Expires, cookie.HttpOnly, cookie.SameSite)
+
+		log.Printf("Sign uo successful for user: %s, session ID: %s", username, sessionID)
 
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 	} else {

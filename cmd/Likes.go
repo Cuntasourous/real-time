@@ -1,6 +1,7 @@
 package forum
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,11 +10,13 @@ import (
 )
 
 func LikeHandler(w http.ResponseWriter, r *http.Request) {
+	// Set the content type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
 	// Get the post ID from the request URL path
 	postIDStr := strings.TrimPrefix(r.URL.Path, "/like/")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
-		// http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
@@ -23,7 +26,7 @@ func LikeHandler(w http.ResponseWriter, r *http.Request) {
 	var userID int
 	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		ErrorHandler(w, r, http.StatusUnauthorized)
 		return
 	}
 
@@ -31,97 +34,70 @@ func LikeHandler(w http.ResponseWriter, r *http.Request) {
 	var existingLikes int
 	err = Db.QueryRow("SELECT COUNT(*) FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingLikes)
 	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
-
-	//method 1: increment 1 and subtract 1
-	// if existingLikes > 0 {
-	// 	// User has already liked the post, remove their like
-	// 	_, err = Db.Exec("DELETE FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID)
-	// 	if err != nil {
-	// 		http.Error(w, "Database error", http.StatusInternalServerError)
-	// 		return
-	// 	}
-
-	// 	// Update the like count in the posts table
-	// 	_, err = Db.Exec("UPDATE posts SET like_count = like_count - 1 WHERE post_id = ?", postID)
-	// 	if err != nil {
-	// 		http.Error(w, "Database error", http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// } else {
-	// 	// User has not liked the post, add their like
-	// 	_, err = Db.Exec("INSERT INTO PostLikes (user_id, post_id) VALUES (?, ?)", userID, postID)
-	// 	if err != nil {
-	// 		http.Error(w, "Database error", http.StatusInternalServerError)
-	// 		return
-	// 	}
-
-	// 	// Update the like count in the posts table
-	// 	_, err = Db.Exec("UPDATE posts SET like_count = like_count + 1 WHERE post_id = ?", postID)
-	// 	if err != nil {
-	// 		http.Error(w, "Database error", http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// }
-
-	//method 2: by counting the UserIDs per postID
 
 	if existingLikes > 0 {
 		// User has already liked the post, remove their like
 		_, err = Db.Exec("DELETE FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID)
 		if err != nil {
-			// http.Error(w, "Database error", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
+			http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
 			return
 		}
 	} else {
-		// User has not liked the post, add their like
+		// User has not liked the post
+		var existingDisikes int
+		err = Db.QueryRow("SELECT COUNT(*) FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingDisikes)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+		if existingDisikes > 0 {
+			// User has already disliked the post, remove their dislike
+			_, err = Db.Exec("DELETE FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID)
+			if err != nil {
+				http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
+				return
+			}
+		}	
 		_, err = Db.Exec("INSERT INTO PostLikes (user_id, post_id) VALUES (?, ?)", userID, postID)
 		if err != nil {
-			// http.Error(w, "Database error", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
+			http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
 			return
 		}
 	}
 
-	//if the same user.id is on PostLikes then delete it.
-	var existingDisikes int
-	err = Db.QueryRow("SELECT COUNT(*) FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingDisikes)
-	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
-	}
-	if existingDisikes > 0 {
-		// User has already liked the post, remove their like
-		_, err = Db.Exec("DELETE FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID)
-		if err != nil {
-			// http.Error(w, "Database error", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-	}
 	// Update the dislike count in the posts table
 	_, err = Db.Exec("UPDATE posts SET dislike_count = (SELECT COUNT(*) FROM PostDislikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
 	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		ErrorHandler(w, r, http.StatusInternalServerError)
+		http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
 		return
 	}
 
 	// Update the like count in the posts table
 	_, err = Db.Exec("UPDATE posts SET like_count = (SELECT COUNT(*) FROM PostLikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
 	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		ErrorHandler(w, r, http.StatusInternalServerError)
+		http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
 		return
 	}
 
-	// Redirect to the homepage
-	http.Redirect(w, r, "/", http.StatusFound)
+	// Get the updated like count
+	var likeCount int
+	err = Db.QueryRow("SELECT like_count FROM posts WHERE post_id = ?", postID).Scan(&likeCount)
+	if err != nil {
+		http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	var dislikeCount int
+	err = Db.QueryRow("SELECT dislike_count FROM posts WHERE post_id = ?", postID).Scan(&dislikeCount)
+	if err != nil {
+		http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
+		return
+	}
+	// Return the updated like count as JSON
+	json.NewEncoder(w).Encode(map[string]int{"likeCount": likeCount, "dislikeCount":dislikeCount, "like":1, "dislike":0})
 }
 
 func CommentikeHandler(w http.ResponseWriter, r *http.Request) {
@@ -218,87 +194,87 @@ func CommentikeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/view_post/%d", postID), http.StatusFound)
 }
 
-func LikeHandler2(w http.ResponseWriter, r *http.Request) {
-	// Get the post ID from the request URL path
-	postIDStr := strings.TrimPrefix(r.URL.Path, "/like2/")
-	postID, err := strconv.Atoi(postIDStr)
-	if err != nil {
-		// http.Error(w, "Invalid post ID", http.StatusBadRequest)
-		ErrorHandler(w, r, http.StatusBadRequest)
-		return
-	}
+// func LikeHandler2(w http.ResponseWriter, r *http.Request) {
+// 	// Get the post ID from the request URL path
+// 	postIDStr := strings.TrimPrefix(r.URL.Path, "/like2/")
+// 	postID, err := strconv.Atoi(postIDStr)
+// 	if err != nil {
+// 		// http.Error(w, "Invalid post ID", http.StatusBadRequest)
+// 		ErrorHandler(w, r, http.StatusBadRequest)
+// 		return
+// 	}
 
-	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
-	var userID int
-	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
+// 	// Get the session ID from the cookie
+// 	sessionID, _ := getCookie(r, CookieName)
+// 	var userID int
+// 	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
+// 	if err != nil {
+// 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+// 		return
+// 	}
 
-	// Check if the user has already liked the post
-	var existingLikes int
-	err = Db.QueryRow("SELECT COUNT(*) FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingLikes)
-	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
-	}
+// 	// Check if the user has already liked the post
+// 	var existingLikes int
+// 	err = Db.QueryRow("SELECT COUNT(*) FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingLikes)
+// 	if err != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		ErrorHandler(w, r, http.StatusInternalServerError)
+// 		return
+// 	}
 
-	//method 2: by counting the UserIDs per postID
+// 	//method 2: by counting the UserIDs per postID
 
-	if existingLikes > 0 {
-		// User has already liked the post, remove their like
-		_, err = Db.Exec("DELETE FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID)
-		if err != nil {
-			// http.Error(w, "Database error", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-	} else {
-		// User has not liked the post, add their like
-		_, err = Db.Exec("INSERT INTO PostLikes (user_id, post_id) VALUES (?, ?)", userID, postID)
-		if err != nil {
-			// http.Error(w, "Database error", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-	}
+// 	if existingLikes > 0 {
+// 		// User has already liked the post, remove their like
+// 		_, err = Db.Exec("DELETE FROM PostLikes WHERE user_id = ? AND post_id = ?", userID, postID)
+// 		if err != nil {
+// 			// http.Error(w, "Database error", http.StatusInternalServerError)
+// 			ErrorHandler(w, r, http.StatusInternalServerError)
+// 			return
+// 		}
+// 	} else {
+// 		// User has not liked the post, add their like
+// 		_, err = Db.Exec("INSERT INTO PostLikes (user_id, post_id) VALUES (?, ?)", userID, postID)
+// 		if err != nil {
+// 			// http.Error(w, "Database error", http.StatusInternalServerError)
+// 			ErrorHandler(w, r, http.StatusInternalServerError)
+// 			return
+// 		}
+// 	}
 
-	//if the same user.id is on PostLikes then delete it.
-	var existingDisikes int
-	err = Db.QueryRow("SELECT COUNT(*) FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingDisikes)
-	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
-	}
-	if existingDisikes > 0 {
-		// User has already liked the post, remove their like
-		_, err = Db.Exec("DELETE FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID)
-		if err != nil {
-			// http.Error(w, "Database error", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-	}
-	// Update the dislike count in the posts table
-	_, err = Db.Exec("UPDATE posts SET dislike_count = (SELECT COUNT(*) FROM PostDislikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
-	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
-	}
+// 	//if the same user.id is on PostLikes then delete it.
+// 	var existingDisikes int
+// 	err = Db.QueryRow("SELECT COUNT(*) FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID).Scan(&existingDisikes)
+// 	if err != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		ErrorHandler(w, r, http.StatusInternalServerError)
+// 		return
+// 	}
+// 	if existingDisikes > 0 {
+// 		// User has already liked the post, remove their like
+// 		_, err = Db.Exec("DELETE FROM PostDislikes WHERE user_id = ? AND post_id = ?", userID, postID)
+// 		if err != nil {
+// 			// http.Error(w, "Database error", http.StatusInternalServerError)
+// 			ErrorHandler(w, r, http.StatusInternalServerError)
+// 			return
+// 		}
+// 	}
+// 	// Update the dislike count in the posts table
+// 	_, err = Db.Exec("UPDATE posts SET dislike_count = (SELECT COUNT(*) FROM PostDislikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
+// 	if err != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		ErrorHandler(w, r, http.StatusInternalServerError)
+// 		return
+// 	}
 
-	// Update the like count in the posts table
-	_, err = Db.Exec("UPDATE posts SET like_count = (SELECT COUNT(*) FROM PostLikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
-	if err != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
-	}
+// 	// Update the like count in the posts table
+// 	_, err = Db.Exec("UPDATE posts SET like_count = (SELECT COUNT(*) FROM PostLikes WHERE post_id = ?) WHERE post_id = ?", postID, postID)
+// 	if err != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		ErrorHandler(w, r, http.StatusInternalServerError)
+// 		return
+// 	}
 
-	// After updating the like count, redirect back to the view_post page
-	http.Redirect(w, r, fmt.Sprintf("/view_post/%d", postID), http.StatusFound)
-}
+// 	// After updating the like count, redirect back to the view_post page
+// 	http.Redirect(w, r, fmt.Sprintf("/view_post/%d", postID), http.StatusFound)
+// }

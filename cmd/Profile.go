@@ -1,6 +1,7 @@
 package forum
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 )
@@ -21,18 +22,21 @@ func ViewProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := getUserProfile(userID)
 	if err != nil {
+		fmt.Println("here1", err)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	t, err := template.ParseFiles("templates/view_profile.html")
 	if err != nil {
+		fmt.Println("here2")
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	err = t.Execute(w, profile)
 	if err != nil {
+		fmt.Println("here3")
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
@@ -43,7 +47,7 @@ func getUserProfile(userID int) (UserProfile, error) {
 
 	// Fetch user details
 	var user User
-	err := Db.QueryRow("SELECT username, email, date_created FROM Users WHERE user_id = ?", userID).
+	err := Db.QueryRow("SELECT username, email, date_created FROM users WHERE user_id = ?", userID).
 		Scan(&user.Username, &user.Email, &user.DateCreated)
 	if err != nil {
 		return profile, err

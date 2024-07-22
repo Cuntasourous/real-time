@@ -40,7 +40,7 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var categories []Category
 
-	rows, err := Db.Query("SELECT category_id, category_name FROM Categories")
+	rows, err := Db.Query("SELECT category_id, category_name FROM categories")
 	if err != nil {
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
@@ -96,6 +96,7 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the category ID from the URL
 	path := strings.TrimPrefix(r.URL.Path, "/category/")
 	categoryID, err := strconv.Atoi(path)
+	fmt.Println("Cat ID", categoryID)
 	if err != nil {
 		// http.Error(w, "Invalid category ID", http.StatusBadRequest)
 		ErrorHandler(w, r, http.StatusBadRequest)
@@ -104,7 +105,7 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch the category name
 	var categoryName string
-	err = Db.QueryRow("SELECT category_name FROM Categories WHERE category_id = ?", categoryID).Scan(&categoryName)
+	err = Db.QueryRow("SELECT category_name FROM categories WHERE category_id = ?", categoryID).Scan(&categoryName)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// http.Error(w, "Category not found", http.StatusNotFound)

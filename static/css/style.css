@@ -16,21 +16,23 @@ body{
     margin-left: -8px;
     margin-top: -10px;
     position: fixed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .banner img {
-    margin-left: 200px;
+    /* margin-left: 200px; */
     margin-top: 180px;
 }
 .banner h1 {
-    margin-left: 169px;
+    /* margin-left: 169px; */
     margin-top: 12px;
     font-size: 30px;
-    
 }
 
 .banner p {
     margin-top: 200px;
-    margin-left: 235px;
+    /* margin-left: 235px; */
     font-size: 18px;
 }
 
@@ -56,7 +58,7 @@ body{
     font-family: 'century gothic';
     font-weight: bold;
     color: #FF8A80;
-    margin-left: 169px;
+    /* margin-left: 169px; */
     margin-top: 30px;
     transition: background-color 0.3s ease;
 }
@@ -83,7 +85,7 @@ body{
 
 input:focus {
     outline: none;
-  }
+}
 
 textarea:focus {
     outline: none;
@@ -386,17 +388,28 @@ body{
     cursor: pointer;
 }
 
-.post-structure .post-options form button .heart{
-    width: 24px; /* pathのサイズ */
-	height: 24px; /* pathのサイズ */
-	background: #abaaab5c; /* 色 */
-	clip-path: path("M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z");
+.post-structure .post-options form button .heartLike,
+.post-structure .post-options form button .heartDislike {
+    width: 24px;
+    height: 24px;
+    background: #abaaab5c;
+    clip-path: path("M12 4.419c-2.826-5.695-11.999-4.064-11.999 3.27 0 7.27 9.903 10.938 11.999 15.311 2.096-4.373 12-8.041 12-15.311 0-7.327-9.17-8.972-12-3.27z");
     transform: scale(0.7);
     margin-top: -3px;
 }
 
-.post-structure .post-options form button .heart:hover{
-	background: #FF5252; /* 色 */
+.post-structure .post-options form button .heartLike:hover,
+.post-structure .post-options form button .heartDislike:hover {
+    background: #FF5252;
+}
+
+/* .post-structure .post-options form button.like-button.red {
+    background: #FF5252;
+  } */
+
+.post-structure .post-options form button .heartLike.red,
+.post-structure .post-options form button .heartDislike.red {
+    background: #FF5252;
 }
 
 .post-structure .post-options span{
@@ -566,7 +579,7 @@ body{
     margin-bottom: -10px;
 }
 
-.heart{
+.heartLike, .heartDislike{
     width: 24px; /* pathのサイズ */
 	height: 24px; /* pathのサイズ */
 	background: #abaaab5c; /* 色 */
@@ -575,13 +588,19 @@ body{
     margin-top: -3px;
 }
 
-.heart:hover{
+.heartLike:hover, .heartDislike:hover{
 	background: #FF5252; /* 色 */
 }
 
-.guest-btn{
-    margin-left: 220px;
-    margin-bottom: 20px;
+.guest{
+    padding: 30px;
+    text-decoration: none;
+    font-size: large;
+    color: #444344;
+}
+
+.guest:hover{
+    text-decoration: underline;
 }
 
 /* ------------------------------------------ VIEW CATEGORIES ------------------------------------------------- */
@@ -717,7 +736,7 @@ body{
     border: none;
     width: 500px;
     height: 60px;
-    resize: vertical;
+    resize: none;
 }
 
 #create-post .post-structure form .pink-rounded-button{

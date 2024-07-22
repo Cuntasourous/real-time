@@ -86,22 +86,28 @@
                         {{.PostText}}
                     </div>
                 </a>
-                    <div class="post-options">
-                        <!-- {{if $.LoggedInUser}} -->
-                        <form method="POST" action="/like/{{.PostID}}">
-                            <button type="submit"><div class="heart"></div></button>
-                        </form>
-                        <b>
-                        Likes <span id="like-count-{{.PostID}}">   {{.LikeCount}}</span>
-                        </b>
-                        <form method="POST" action="/dislike/{{.PostID}}">
-                            <button type="submit"><div class="heart"></div></button>
-                        </form>
-                        <b>
-                        Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
-                    </b>
-                        <!-- {{end}} -->
-                    </div>
+                <div class="post-options">
+    <!-- {{if $.LoggedInUser}} -->
+    <form method="POST" class="like-form">
+        <button type="submit" class="like-button" data-post-id="{{.PostID}}">
+            <div id="like-heart-{{.PostID}}" class="heartLike"></div>
+        </button>
+    </form>
+    <b>
+        Likes <span id="like-count-{{.PostID}}">{{.LikeCount}}</span>
+    </b>
+    <form method="POST" class="dislike-form">
+        <button type="submit" class="dislike-button" data-post-id="{{.PostID}}">
+            <div id="dislike-heart-{{.PostID}}" class="heartDislike"></div>
+        </button>
+    </form>
+    <b>
+        Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
+    </b>
+    <!-- {{end}} -->
+</div>
+
+                
                 </div>
                 {{end}}
             </div>
@@ -125,46 +131,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- {{if .LoggedInUser}}
-        <h2>Welcome, {{.LoggedInUser}}!</h2>
-    {{else}}
-        <a href="/login">login</a>
-    {{end}}
-    <h2>lets chat</h2>
-    {{if .LoggedInUser}}
-        <a href="/profile">Profile</a><br>
-        <a href="/create_post">create post</a><br>
-        <a href="/create_category">Create a new category</a><br>
-    {{end}}
-    <a href="/view_categories">view Categories</a>
-    <ul>
-        {{range .Posts}}
-          <li>
-            <b>{{.Username}}</b> - <a href="view_post/{{.PostID}}"> {{.PostText}}</a> ({{.PostDate}})
-            <br>
-            Likes: <span id="like-count-{{.PostID}}">{{.LikeCount}}</span> | Dislikes: <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
-            <br>
-            <b>Categories:</b>
-            {{range .Categories}}
-              {{.}}
-            {{end}}
-            <br>
-                <form method="POST" action="/like/{{.PostID}}">
-                    <button type="submit">Like</button>
-                </form>
-                <form method="POST" action="/dislike/{{.PostID}}">
-                    <button type="submit">Dislike</button>
-                </form>
-          </li>
-        {{end}}
-    </ul>
-    {{if .LoggedInUser}}
-        <form method="POST" action="/logout">
-            <button type="submit">Logout</button>
-        </form>
-    {{end}} -->
-
     <style>
         body{
             /* background-color: #fbfafb; */
@@ -174,5 +140,102 @@
             background-attachment: fixed; /* Make the background fixed */
         }
     </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const likeButtons = document.querySelectorAll('.like-button');
+    const dislikeButtons = document.querySelectorAll('.dislike-button');
+
+    likeButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+    e.preventDefault(); // to stop page refresh
+
+    const postId = button.getAttribute('data-post-id');
+    const url = `/like/${postId}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ postId })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        // Update the like count in the DOM
+        const likeCountSpan = document.getElementById(`like-count-${postId}`);
+        const dislikeCountSpan = document.getElementById(`dislike-count-${postId}`);
+        likeCountSpan.textContent = result.likeCount;
+        dislikeCountSpan.textContent = result.dislikeCount;
+
+        const heartLike = button.querySelector('.heartLike');
+        const heartDislike = button.querySelector('.heartDisLike');
+
+        if(!heartLike.classList.contains('red')){
+            if(heartDislike.classList.contains('red')){
+                heartDislike.remove('red')
+            }
+            heartLike.classList.add('red')
+        } else {
+            heartDislike.classList.remove('red')
+        }
+      } else {
+        console.error("Form submission failed");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  });
+});
+
+dislikeButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const postId = button.getAttribute('data-post-id');
+        const url = `/dislike/${postId}`;
+                    
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ postId })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                // Update the like count in the DOM
+                const dislikeCountSpan = document.getElementById(`dislike-count-${postId}`);
+                const likeCountSpan = document.getElementById(`like-count-${postId}`);
+                dislikeCountSpan.textContent = result.dislikeCount;
+                likeCountSpan.textContent = result.likeCount;
+
+                const heartLike = button.querySelector('.heartLike');
+                const heartDislike = button.querySelector('.heartDisLike');
+
+                if(!heartLike.classList.contains('red')){
+                    if(heartDislike.classList.contains('red')){
+                        heartDislike.remove('red')
+                    }
+                    heartLike.classList.add('red')
+                } else {
+                    heartDislike.classList.remove('red')
+                }
+            } else {
+                console.error("Form submission failed");
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+        }
+    });
+});
+});
+
+    </script>
 </body>
 </html>
