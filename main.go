@@ -5,7 +5,6 @@ import (
 	forum "forum/cmd"
 	"log"
 	"net/http"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -58,5 +57,8 @@ func main() {
 
 	//go live
 	log.Print("http://localhost:8080/")
-	http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatalf("ListenAndServe: %v", err)
+	}
 }

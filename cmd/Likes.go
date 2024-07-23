@@ -97,7 +97,7 @@ func LikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Return the updated like count as JSON
-	json.NewEncoder(w).Encode(map[string]int{"likeCount": likeCount, "dislikeCount":dislikeCount, "like":1, "dislike":0})
+	json.NewEncoder(w).Encode(map[string]int{"likeCount": likeCount, "dislikeCount":dislikeCount})
 }
 
 func CommentikeHandler(w http.ResponseWriter, r *http.Request) {
@@ -191,7 +191,25 @@ func CommentikeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect to the post page
-	http.Redirect(w, r, fmt.Sprintf("/view_post/%d", postID), http.StatusFound)
+	// http.Redirect(w, r, fmt.Sprintf("/view_post/%d", postID), http.StatusFound)
+
+	// Get the updated like count
+	var clikeCount int
+	err = Db.QueryRow("SELECT like_count FROM Comments WHERE post_id = ?", postID).Scan(&clikeCount)
+	if err != nil {
+		http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	var cdislikeCount int
+	err = Db.QueryRow("SELECT dislike_count FROM Comments WHERE post_id = ?", postID).Scan(&cdislikeCount)
+	if err != nil {
+		http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]int{"clikeCount": clikeCount, "cdislikeCount":cdislikeCount})
+
 }
 
 func LikeHandler2(w http.ResponseWriter, r *http.Request) {

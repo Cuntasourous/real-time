@@ -578,7 +578,7 @@ body{
     margin-bottom: -10px;
 }
 
-.heartLike, .heartDislike{
+.heartLike, .heartDislike, .heartcLike, .heartcDislike{
     width: 24px; /* pathのサイズ */
 	height: 24px; /* pathのサイズ */
 	background: #abaaab5c; /* 色 */
@@ -587,8 +587,9 @@ body{
     margin-top: -3px;
 }
 
-.heartLike:hover, .heartDislike:hover{
+.heartLike:hover, .heartDislike:hover, .heartcLike:hover, .heartcDislike:hover{
 	background: #FF5252; /* 色 */
+    cursor: pointer;
 }
 
 .guest{
