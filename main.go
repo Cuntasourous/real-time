@@ -31,7 +31,7 @@ func main() {
 	http.HandleFunc("/dislike/", forum.DislikeHandler)
 	http.HandleFunc("/clike/", forum.CommentikeHandler)
 	http.HandleFunc("/cdislike/", forum.CommentDislikeHandler)
-	// http.HandleFunc("/like2/", forum.LikeHandler2)
+	http.HandleFunc("/like2/", forum.LikeHandler2)
 	http.HandleFunc("/dislike2/", forum.DislikeHandler2)
 	http.HandleFunc("/home", forum.Handler)
 	http.HandleFunc("/", forum.HandleRoot)

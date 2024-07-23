@@ -499,11 +499,10 @@ body{
     padding: 12px 0px 0px 0;
     padding-left: 20px;
     height: 30px; /* Initial height */
-    /* max-height: 100px;  */
     min-width: 450px;
     border: #cac2caab solid 1px;
-    resize: vertical; /* Allow resizing only vertically */
     margin-right: 20px;
+    resize: none;
 }
 
 #comment-form form button{

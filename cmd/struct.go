@@ -27,7 +27,7 @@ type Post struct {
 	LikeCount    int    `json:"like_count"`
 	DislikeCount int    `json:"dislike_count"`
 	Username     string
-	Categories   []string // Add this field to store categories
+	Categories   []string
 }
 
 type Comment struct {

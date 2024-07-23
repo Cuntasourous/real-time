@@ -82,20 +82,23 @@
                     {{.Post.PostText}}
                 </div>
                 <div class="post-options">
-                    <!-- {{if $.LoggedInUser}} -->
-                    <form method="POST" action="/like2/{{.Post.PostID}}">
-                        <button type="submit"><div class="heart"></div></button>
+                    <form method="POST" class="like-form">
+                        <button type="submit" class="like-button" data-post-id="{{.PostID}}" data-is-liked="{{.PostLikedOrNot.IsLiked}}">
+                            <div id="like-heart-{{.PostID}}" class="heartLike"></div>
+                        </button>
                     </form>
                     <b>
-                    Likes <span id="like-count-{{.Post.PostID}}">   {{.Post.LikeCount}}</span>
+                        Likes <span id="like-count-{{.Post.PostID}}">{{.Post.LikeCount}}</span>
                     </b>
-                    <form method="POST" action="/dislike2/{{.Post.PostID}}">
-                        <button type="submit"><div class="heart"></div></button>
+
+                    <form method="POST" class="dislike-form">
+                        <button type="submit" class="dislike-button" data-post-id="{{.PostID}}" data-is-disliked="{{.PostLikedOrNot.IsDisliked}}">
+                            <div id="dislike-heart-{{.PostID}}" class="heartDislike"></div>
+                        </button>
                     </form>
                     <b>
-                    Dislikes <span id="dislike-count-{{.Post.PostID}}">{{.Post.DislikeCount}}</span>
-                </b>
-                    <!-- {{end}} -->
+                        Dislikes <span id="dislike-count-{{.Post.PostID}}">{{.Post.DislikeCount}}</span>
+                    </b>
                 </div>
             </div>
         </div>
@@ -113,27 +116,6 @@
                 </a>
             {{end}}
         </div>
-
-
-    <!-- {{if $.LoggedInUser}}
-        <form method="POST" action="/like2/{{.Post.PostID}}">
-            <button type="submit">Like</button>
-            </form>
-            <form method="POST" action="/dislike2/{{.Post.PostID}}">
-                <button type="submit">Dislike</button>
-            </form>
-    {{end}} -->
-
-    <!-- <h2>Add a Comment</h2>
-    {{if .LoggedInUser}}
-        <form id="comment-form" method="POST" action="">
-            <textarea name="comment_text" placeholder="Enter your comment"></textarea>
-            <button type="submit">Add Comment</button>
-        </form>
-    {{else}}
-        <a href="/login">login to add a comment</a>
-    {{end}} -->
-
     <div id="comments-list">
         {{range .Comments}}
         <div class="comment-sec">
@@ -147,11 +129,11 @@
                 <div class="comment-option">
                     {{if $.LoggedInUser}}
                     <form method="POST" action="/clike/{{.CommentID}}">
-                    <button type="submit"><div class="heart"></div></button>
+                    <button type="submit"><div class="heartLike"></div></button>
                     </form>
                     <span id="like-count-{{.CommentID}}">{{.LikeCount}}</span> 
                     <form method="POST" action="/cdislike/{{.CommentID}}">
-                        <button type="submit"><div class="heart"></div></button>
+                        <button type="submit"><div class="heartDislike"></div></button>
                     </form>
                     <span id="dislike-count-{{.CommentID}}">{{.DislikeCount}}</span>
                 {{end}}
@@ -180,34 +162,6 @@
 </div>
 </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- <script>
-        $(document).ready(function() {
-            $('#comment-form').submit(function(e) {
-                e.preventDefault();
-                var commentText = $('textarea[name="comment_text"]').val();
-                $.ajax({
-                    url: '/add_comment/{{.Post.PostID}}',
-                    type: 'POST',
-                    data: { comment_text: commentText },
-                    dataType: 'json',
-                    success: function(response) {
-                        var newComment = '<li>' +
-                            '<b>' + response.username + '</b> - ' + response.comment_text + ' (' + response.comment_date + ')' +
-                            '<br>' +
-                            'Likes: <span id="like-count-' + response.comment_id + '">' + response.like_count + '</span> | ' +
-                            'Dislikes: <span id="dislike-count-' + response.comment_id + '">' + response.dislike_count + '</span>' +
-                            '</li>';
-                        $('#comments-list').append(newComment);
-                        $('textarea[name="comment_text"]').val('');
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error adding comment:", error);
-                        alert("Error adding comment. Please try again.");
-                    }
-                });
-            });
-        });
-    </script> -->
     <script>
         $('#comment-form').submit(function(e) {
             e.preventDefault();
@@ -223,11 +177,12 @@
             // Wait for 2 seconds and then refresh the page
             setTimeout(function() {
             location.reload();
-            }, 2000);
+            }, 1);
             }
             });
             });
     </script>
+    <script src="/js/index.js"></script>
         <style>
             body{
                 background-color: #fbfafb;

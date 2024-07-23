@@ -169,26 +169,33 @@ func getPostByID(postID int) (Post, error) {
 	return post, nil
 }
 
+// Define the struct with correct embedding
+type PostLikedOrNot struct {
+	Post
+	IsLiked    bool
+	IsDisliked bool
+}
+
 func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	// Extract the post_id from the URL
 	postID, err := getPostIDFromURL(r)
 	if err != nil {
-		// http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
+	// Get userID from the session
 	sessionID, _ := getCookie(r, CookieName)
 	var userID int
 	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		fmt.Println("guest")
+		fmt.Println("guest") // Log for debugging
 	}
 
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
-		username = ""
+		username = "" // No username if not found
 	}
 
 	// Handle like and dislike actions
@@ -203,18 +210,16 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Fetch the post data from the database using postID
+	// Fetch the post data
 	post, err := getPostByID(postID)
 	if err != nil {
-		// http.Error(w, "Post not found", http.StatusNotFound)
 		ErrorHandler(w, r, http.StatusNotFound)
 		return
 	}
 
-	// Fetch categories for this post
+	// Fetch categories for the post
 	categories, err := getCategoriesByPostID(postID)
 	if err != nil {
-		// http.Error(w, "Error fetching categories", http.StatusInternalServerError)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
@@ -227,7 +232,6 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		// Handle POST request
 		handleAddComment(w, r, postID)
 	}
 
@@ -235,22 +239,40 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	popularCategories, err := getPopularCategories()
 	if err != nil {
 		log.Printf("Error fetching popular categories: %v", err)
-		// Instead of handling the error here, we'll pass an empty slice
-		popularCategories = []PopularCategory{}
+		popularCategories = []PopularCategory{} // Provide an empty slice on error
+	}
+	
+	// Check if the post is liked or disliked by the user
+	var isLiked, isDisliked bool
+	err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostLikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isLiked)
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		return
+	}
+	err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostDislikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isDisliked)
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		return
 	}
 
-	// Render the view_post template
+	postLikedOrNot := PostLikedOrNot{
+		Post:       post,
+		IsLiked:    isLiked,
+		IsDisliked: isDisliked,
+	}
+
 	data := map[string]interface{}{
 		"Post":            post,
 		"Categories":      categories,
 		"Comments":        comments,
 		"LoggedInUser":    username,
 		"PopularCategory": popularCategories,
+		"PostLikedOrNot":  postLikedOrNot,
 	}
+	
 	// Parse the template file
 	t, err := template.ParseFiles("templates/view_post.html")
 	if err != nil {
-		// http.Error(w, "Error parsing template", http.StatusInternalServerError)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
@@ -258,7 +280,6 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	// Execute the template with the data
 	err = t.Execute(w, data)
 	if err != nil {
-		// http.Error(w, "Error executing template", http.StatusInternalServerError)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}

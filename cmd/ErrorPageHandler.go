@@ -2,6 +2,7 @@ package forum
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 )
 
@@ -11,7 +12,6 @@ type ErrorData struct {
 }
 
 func ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
-	w.WriteHeader(status)
 	var data ErrorData
 
 	switch status {
@@ -36,11 +36,20 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
 			Message: "An unexpected error occurred.",
 		}
 	}
+	data.StatusCode = status
+
 	parsedTemplate, err := template.ParseFiles("error/error.html")
 	if err != nil {
+		// Directly write the error message with status code
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 		return
 	}
-	data.StatusCode = status
-	parsedTemplate.Execute(w, data)
+
+	// Write the response header only once
+	// w.WriteHeader(status)
+	err = parsedTemplate.Execute(w, data)
+	if err != nil {
+		// Log the error for debugging purposes
+		log.Printf("Error executing error.html template")
+	}
 }

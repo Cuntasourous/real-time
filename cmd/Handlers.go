@@ -52,45 +52,71 @@ func Handler(w http.ResponseWriter, r *http.Request) {
         ORDER BY p.post_date DESC
     `)
 	if err != nil {
+		fmt.Println("here", err)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var posts []Post
+	var posts []struct {
+		Post
+		IsLiked bool
+		IsDisliked bool
+	}
+
 	for rows.Next() {
 		var post Post
-		var categoriesString string                                                                                                                          // Declare a variable to hold the categories string
-		err := rows.Scan(&post.PostID, &post.UserID, &post.PostText, &post.PostDate, &post.LikeCount, &post.DislikeCount, &post.Username, &categoriesString) // Scan the categories string
+		var categoriesString string
+		err := rows.Scan(&post.PostID, &post.UserID, &post.PostText, &post.PostDate, &post.LikeCount, &post.DislikeCount, &post.Username, &categoriesString)
 		if err != nil {
 			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
-		// Split the categories string into a slice
-		post.Categories = strings.Split(categoriesString, ",") // Split the categories string
-		posts = append(posts, post)
+		post.Categories = strings.Split(categoriesString, ",")
+
+		// Check if the current user has liked the post
+		var isLiked, isDisliked bool
+		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostLikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isLiked)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostDislikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isDisliked)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+
+		posts = append(posts, struct {
+			Post
+			IsLiked bool
+			IsDisliked bool
+		}{
+			Post:    post,
+			IsLiked: isLiked,
+			IsDisliked: isDisliked,
+		})
 	}
 
-	// Check for errors during iteration
 	if err = rows.Err(); err != nil {
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		fmt.Println("Error iterating over database results")
-		// http.Error(w, "Error iterating over database results", http.StatusInternalServerError)
 		return
 	}
 
-	// Fetch popular categories
 	popularCategories, err := getPopularCategories()
 	if err != nil {
 		log.Printf("Error fetching popular categories: %v", err)
-		// Instead of handling the error here, we'll pass an empty slice
 		popularCategories = []PopularCategory{}
 	}
 
-	// Create a struct to hold both the logged-in username and the users slice
 	data := struct {
 		LoggedInUser    string
-		Posts           []Post
+		Posts           []struct {
+			Post
+			IsLiked bool
+			IsDisliked bool
+		}
 		PopularCategory []PopularCategory
 	}{
 		LoggedInUser:    username,
@@ -98,17 +124,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		PopularCategory: popularCategories,
 	}
 
-	// Render the index template
 	t, err := template.ParseFiles("templates/index.html")
 	if err != nil {
 		ErrorHandler(w, r, http.StatusInternalServerError)
-		// http.Error(w, "Error parsing template", http.StatusInternalServerError)
 		return
 	}
 	err = t.Execute(w, data)
 	if err != nil {
 		ErrorHandler(w, r, http.StatusInternalServerError)
-		// http.Error(w, "Error executing template", http.StatusInternalServerError)
 		return
 	}
 }
