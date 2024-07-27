@@ -1,6 +1,8 @@
+#!/bin/bash
+
 # Build the docker image
 # -t Tags the image with the name dockerize
-docker build -t forum-app .
+docker image build -f Dockerfile -t forum-app .
 
 # -f specifies the path
 # docker image build -f Dockerfile -t dockerize .
