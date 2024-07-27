@@ -5,9 +5,8 @@ import (
 	"log"
 	"time"
 	"net/http"
+	"fmt"
 )
-
-
 
 // Helper function to set a cookie
 func SetCookie(w http.ResponseWriter, name string, value string, expires time.Time) {
@@ -46,26 +45,44 @@ func isAuthenticated(r *http.Request) bool {
 
 // validateSession checks if the session ID exists and is still valid
 func validateSession(sessionID string) bool {
-	var expiresAt time.Time
-	var 
+    var expiresAt time.Time
+    var userID int
 
-	// Query the database for the session
-	err := Db.QueryRow("SELECT expires_at FROM sessions WHERE id = ?", sessionID).Scan(&expiresAt)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Printf("Session ID not found: %s", sessionID)
-			return false
-		}
-		log.Printf("Error querying session: %v", err)
-		return false
-	}
-	
+    // Query the database for the session
+    err := Db.QueryRow("SELECT expires_at, user_id FROM sessions WHERE id = ?", sessionID).Scan(&expiresAt, &userID)
+	fmt.Println("userid", userID)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            log.Printf("Session ID not found: %s", sessionID)
+            return false
+        }
+        log.Printf("Error querying session: %v", err)
+        return false
+    }
 
-	// Check if the session has expired
-	if time.Now().After(expiresAt) {
-		log.Printf("Session ID expired: %s", sessionID)
-		return false
-	}
+    // Check if the session has expired
+    if time.Now().After(expiresAt) {
+        log.Printf("Session ID expired: %s", sessionID)
+        return false
+    }
 
-	return true
+    // Count the number of sessions for the user
+    var count int
+    err = Db.QueryRow("SELECT COUNT(*) FROM sessions WHERE user_id = ?", userID).Scan(&count)
+    if err != nil {
+        log.Printf("Error counting number of sessions: %v", err)
+        return false
+    }
+
+    // Delete duplicate sessions if more than one session exists
+    if count > 1 {
+		fmt.Println(userID)
+        _, err = Db.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
+        if err != nil {
+            log.Printf("Error deleting duplicate sessions: %v", err)
+            return false
+        }
+    }
+
+    return true
 }
