@@ -1,7 +1,7 @@
-FROM golang : latest
+FROM golang:latest
 
-LABEL contributers= "Ameena Raed Maram Sagheer, Zahraa Fadhel, Omar Albinkhalil, Sara Abdulla"
-LABEL project= "Forum"
+LABEL contributers="Ameena Raed Maram Sagheer, Zahraa Fadhel, Omar Albinkhalil, Sara Abdulla"
+LABEL project="Forum"
 
 #sets the working directory, all commands will be run in the /app directory
 WORKDIR /app
