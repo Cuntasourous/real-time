@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posts in {{.CategoryName}}</title>
-    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/category-posts.css" rel="stylesheet" type="text/css">
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
 <body>
@@ -64,9 +65,56 @@
         </div>
         <div id="middle-posts">
             <div class="greetings">
-                <br>
-                <br>
                 <h1>Posts in {{.CategoryName}}</h1>
+            </div>
+            <div class="mobile-navbar">
+                <a href="/home">
+                    <div class="nav-item" >
+                        <img src="/static/img/home-icon.png" alt="home">
+                        Home
+                    </div>
+                </a>
+                
+                <a href="/view_categories">
+                    <div class="active">
+                        <img src="/static/img/categories.png" alt="category">
+                        Categories
+                    </div>
+                </a>
+                <!-- create post -->
+                {{if .LoggedInUser}}
+                <a href="/create_post">
+                    <div class="nav-item">
+                        <img src="/static/img/addpost.png" alt="home">
+                        Create Post
+                    </div>
+                </a>
+                {{end}}
+                <!-- profile -->
+                {{if .LoggedInUser}}
+                <a href="/profile">
+                    <div class="nav-item">
+                        <img src="/static/img/user.png" alt="home">
+                        Profile
+                    </div>
+                </a>
+                {{end}}
+                <!-- logout -->
+                {{if .LoggedInUser}}
+                <a href="/logout">
+                    <div class="nav-item">
+                        <img src="/static/img/leave.png" alt="home">
+                        Log out
+                    </div>
+                </a>
+                {{else}}
+                <a href="/login">
+                    <div class="nav-item">
+                        <img src="/static/img/switch.png" alt="home">
+                        Login
+                    </div>
+                </a>
+                {{end}}
             </div>
             <div id="posts">
                 {{if .Posts}}
@@ -87,20 +135,12 @@
                         </div>
                     </a>
                         <div class="post-options">
-                            <!-- {{if $.LoggedInUser}} -->
-                            <!-- <form method="POST" action="/like/{{.PostID}}">
-                                <button type="submit"><div class="heart"></div></button>
-                            </form> -->
                             <b>
-                            Likes <span id="like-count-{{.PostID}}">   {{.LikeCount}}</span>
+                            Likes <span id="like-count-{{.PostID}}"> {{.LikeCount}}</span>
                             </b>
-                            <!-- <form method="POST" action="/dislike/{{.PostID}}">
-                                <button type="submit"><div class="heart"></div></button>
-                            </form> -->
                             <b>
                             Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
                         </b>
-                            <!-- {{end}} -->
                         </div>
                     </div>
                     {{end}}
@@ -110,14 +150,5 @@
             </div>
         </div>
     </div>
-    <style>
-        body{
-            /* background-color: #fbfafb; */
-            background-image: url(/static/img/background.png);
-            background-size: cover; /* Optional: Cover the entire viewport */
-            background-repeat: no-repeat; /* Optional: Prevent repeating */
-            background-attachment: fixed; /* Make the background fixed */
-        }
-    </style>
 </body>
 </html>

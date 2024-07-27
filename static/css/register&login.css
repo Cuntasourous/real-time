@@ -1,0 +1,231 @@
+body, html {
+  background-color: #F5F5F5;
+  font-family: 'century gothic';
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.banner {
+  background-color: white;
+  width: 30%;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner img {
+  max-width: 150px;
+  margin-top: 20px;
+}
+
+.banner h1 {
+  margin-top: 12px;
+  font-size: 30px;
+}
+
+.banner p, .mobile-links p, .mobile-btn {
+  font-size: 18px;
+  font-family: 'century gothic';
+}
+
+.banner p a, .mobile-links p a {
+  text-decoration: underline solid 2px #d9717100;
+  color: black;
+  transition: all 0.3s ease;
+}
+
+.banner p a:hover, .mobile-links p a:hover, .mobile-btn:hover {
+  text-decoration: underline solid 2px #d971717d;
+  transition: all 0.3s ease;
+}
+
+.mobile-btn{
+  border: none;
+  background: none;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+}
+
+.sign-btn {
+  background-color: white;
+  border: 2px solid;
+  border-radius: 50px;
+  padding: 15px 30px;
+  font-family: 'century gothic';
+  font-weight: bold;
+  color: #FF8A80;
+  margin-top: 30px;
+  transition: background-color 0.3s ease;
+}
+
+.sign-btn:hover {
+  background-color: #D97171;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.sign-form {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.sign-form form {
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.sign-form form h1 {
+  font-size: 30px;
+  margin-bottom: 20px;
+}
+
+.sign-form form .account-int {
+  width: calc(100% - 60px);
+  padding: 15px 30px;
+  font-family: 'century gothic';
+  background-color: #EAEEED;
+  border: none;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.sign-form form .sign-btn {
+  width: 100%;
+  background-color: #F5F5F5;
+  transition: background-color 0.3s ease;
+}
+
+.sign-form form .sign-btn:hover {
+  background-color: #D97171;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.mobile-links{
+  display: none;
+}
+
+@media only screen and (max-width: 700px) {
+  .banner {
+    display: none;
+  }
+  
+  .mobile-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+  }
+
+}
+
+.error{
+  color: red;
+}
+
+
+/* .account-info {
+  margin-left: 499px;
+  position: absolute;
+  margin-top: 78px;
+} */
+ 
+/* .account-info form .large{
+  border: none;
+  font-family: 'century gothic';
+  font-size: 55px;
+  font-weight: bold;
+  margin-top: -30px;
+  background: none;
+  margin-bottom: 70px;
+} */
+
+/* .account-info form .large-2{
+  border: none;
+  font-family: 'century gothic';
+  font-size: 50px;
+  font-weight: bold;
+  margin-top: -30px;
+  background: none;
+  margin-bottom: 70px;
+} */
+
+/* .account-info form .small{
+  border: none;
+  font-family: 'century gothic';
+  font-size: 40px;
+  font-weight: bold;
+  margin-top: 41px;
+  background: none;
+  margin-left: -1px;
+  position: absolute;
+} */
+
+/* .account-info form .small-2{
+  border: none;
+  font-family: 'century gothic';
+  font-size: 40px;
+  font-weight: bold;
+  margin-top: 41px;
+  background: none;
+  margin-left: 354px;
+  position: absolute;
+} */
+/* 
+.account-info form{
+  position: fixed;
+}
+.account-info .sign-btn {
+  margin-top: 524px;
+  margin-left: 171px;
+} */
+
+/* .account-info .sign-btn-2{
+  background-color: white;
+  border: 2px solid;
+  border-radius: 50px;
+  padding-top: 15px;
+  padding-left: 100px;
+  padding-right: 100px;
+  padding-bottom: 15px;
+  font-family: 'century gothic';
+  font-weight: bold;
+  color: #FF8A80;
+  margin-left: 169px;
+  margin-top: 179px;
+  transition: background-color 0.3s ease;
+} */
+
+/* .sign-btn-2:hover{
+  background-color: #D97171;
+  color: white;
+  transition: background-color 0.3s ease;
+} */
+/* .account-info a .delete-icon {
+  margin-left: -469px;
+} */
+
+

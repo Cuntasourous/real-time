@@ -1,0 +1,83 @@
+body{
+  /* background-color: #fbfafb; */
+  background-image: url(/static/img/background.png);
+  background-size: cover; /* Optional: Cover the entire viewport */
+  background-repeat: no-repeat; /* Optional: Prevent repeating */
+  background-attachment: fixed; /* Make the background fixed */
+  font-family: 'century gothic';
+}
+
+/* topbar------------------------- */
+#topbar{
+  margin-top: 20px;
+  margin-left: 20px;
+  position: fixed;
+}
+
+/* navabr------------------------- */
+#flex{
+  display: flex;
+}
+
+#flex #navbar{
+  margin-left: -8px;
+  padding-top: 50px;
+  position: fixed;
+  margin-top: 100px;
+}
+
+#flex #navbar a {
+  text-decoration: none;
+}
+
+#flex #navbar a .nav-item {
+  background-color: none;
+  border-radius: 0 50px 50px 0;
+  text-decoration: none;
+  color: grey;
+  width: 218px;
+  height: 40px;
+  font-weight: normal;
+  display: flex; /* Make .nav-item a flex container */
+  align-items: center; /* Center items vertically within .nav-item */
+  margin-bottom: 10px;
+  box-shadow: none;
+  transition: all 0.5s ease;
+}
+
+#flex #navbar a .active {
+  background-color: #fa7268;
+  border-radius: 0 50px 50px 0;
+  text-decoration: none;
+  color: white;
+  width: 218px;
+  height: 40px;
+  font-weight: normal;
+  display: flex; /* Make .nav-item a flex container */
+  align-items: center; /* Center items vertically within .nav-item */
+  margin-bottom: 10px;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+  transition: all 0.3s ease;
+}
+
+#flex #navbar a:hover .nav-item {
+  background-color: #fa7268;
+  color: white;
+  font-weight: normal;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+  transition: all 0.5s ease;
+}
+
+#flex #navbar a .nav-item img {
+  width: 20px;
+  height: auto;
+  margin-left: 30px;
+  margin-right: 25px;
+}
+
+#flex #navbar a .active img {
+  width: 20px;
+  height: auto;
+  margin-left: 30px;
+  margin-right: 25px;
+}

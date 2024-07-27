@@ -21,137 +21,83 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	categories, err := getCategories()
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		return
 	}
 
 	if r.Method == "POST" {
-		fmt.Println("post")
 		post_text := r.FormValue("post_text")
-		// Get selected categories
-		selectedCategories := r.Form["categories"] // Get all selected categories
-
-		if post_text == "" {
-			// http.Error(w, "Please add some text", http.StatusBadRequest)
+		err := r.ParseForm()
+		if err != nil {
 			ErrorHandler(w, r, http.StatusBadRequest)
 			return
 		}
 
-		// Start a transaction
-		tx, err := Db.Begin()
-		if err != nil {
-			log.Printf("Error starting transaction: %v", err)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-		defer tx.Rollback() // Roll back the transaction if it's not committed
+		selectedCategories := r.Form["categories"]
 
-		// Insert the post into the Posts table
-		stmt, err := tx.Prepare("INSERT INTO Posts(user_id, post_text) VALUES(?, ?)")
-		if err != nil {
-			log.Printf("Error preparing SQL statement: %v", err)
-			// http.Error(w, "Error preparing SQL statement", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-		defer stmt.Close()
-
-		result, err := stmt.Exec(userID, post_text)
-		if err != nil {
-			log.Printf("Error inserting post: %v", err)
-			// http.Error(w, "Error inserting post", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-
-		// Get the last inserted post ID
-		lastInsertID, err := result.LastInsertId()
-		if err != nil {
-			log.Printf("Error getting last inserted ID: %v", err)
-			// http.Error(w, "Error getting last inserted ID", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-
-		// Insert the post-category associations into the Post_Categories table
-		for _, categoryName := range selectedCategories {
-			var categoryID int
-			err := Db.QueryRow("SELECT category_id FROM Categories WHERE category_name = ?", categoryName).Scan(&categoryID)
+		if post_text == "" || len(selectedCategories) == 0 {
+			data := struct {
+				LoggedInUser string
+				Categories   []Category
+				ErrorMessage string
+			}{
+				LoggedInUser: username,
+				Categories:   categories,
+				ErrorMessage: "Please add some text and select at least one category.",
+			}
+			t, err := template.ParseFiles("templates/create_post.html")
 			if err != nil {
-				log.Printf("Error getting category ID: %v", err)
-				// http.Error(w, "Error getting category ID", http.StatusInternalServerError)
 				ErrorHandler(w, r, http.StatusInternalServerError)
 				return
 			}
-
-			_, err = tx.Exec("INSERT INTO Post_Categories(post_id, category_id) VALUES(?, ?)", lastInsertID, categoryID)
+			err = t.Execute(w, data)
 			if err != nil {
-				log.Printf("Error inserting post-category association: %v", err)
-				// http.Error(w, "Error inserting post-category association", http.StatusInternalServerError)
 				ErrorHandler(w, r, http.StatusInternalServerError)
-				return
 			}
+			return
 		}
 
-		// Commit the transaction
-		err = tx.Commit()
+		err = createPost(userID, post_text, selectedCategories)
 		if err != nil {
-			log.Printf("Error committing transaction: %v", err)
-			// http.Error(w, "Error committing transaction", http.StatusInternalServerError)
 			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
 
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
-	} else {
-		// Get the list of categories from the database
-		rows, err := Db.Query("SELECT category_name FROM Categories")
-		if err != nil {
-			log.Printf("Error getting categories: %v", err)
-			// http.Error(w, "Error getting categories", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-		defer rows.Close()
+		return
+	}
 
-		var categories []Category
-		for rows.Next() {
-			var category Category
-			err := rows.Scan(&category.CategoryName)
-			if err != nil {
-				// http.Error(w, err.Error(), http.StatusInternalServerError)
-				ErrorHandler(w, r, http.StatusInternalServerError)
-				return
-			}
-			categories = append(categories, category)
-		}
+	// GET request handling
+	data := struct {
+		LoggedInUser string
+		Categories   []Category
+		ErrorMessage string
+	}{
+		LoggedInUser: username,
+		Categories:   categories,
+		ErrorMessage: "",
+	}
 
-		// Pass the categories to the template
-		data := struct {
-			LoggedInUser string
-			Categories   []Category
-		}{
-			LoggedInUser: username,
-			Categories:   categories,
-		}
-
-		// Render the create_post template
-		t, err := template.ParseFiles("templates/create_post.html")
-		if err != nil {
-			// http.Error(w, "Error parsing template", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
-		err = t.Execute(w, data)
-		if err != nil {
-			// http.Error(w, "Error executing template", http.StatusInternalServerError)
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
+	t, err := template.ParseFiles("templates/create_post.html")
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		return
+	}
+	err = t.Execute(w, data)
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
 	}
 }
 
@@ -182,6 +128,10 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ErrorHandler(w, r, http.StatusBadRequest)
 		return
+	}
+
+	if r.Method == http.MethodPost {
+		handleAddComment(w, r, postID)
 	}
 
 	// Get userID from the session
@@ -231,8 +181,23 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == http.MethodPost {
-		handleAddComment(w, r, postID)
+	for i := 0; i < len(comments); i++ {
+		var isLiked, isDisliked bool
+
+		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM CommentLikes WHERE comment_id = ? AND user_id = ?)", comments[i].CommentID, userID).Scan(&isLiked)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+
+		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM CommentDislikes WHERE comment_id = ? AND user_id = ?)", comments[i].CommentID, userID).Scan(&isDisliked)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+
+		comments[i].IsLiked = isLiked
+		comments[i].IsDisliked = isDisliked
 	}
 
 	// Fetch popular categories
@@ -241,7 +206,7 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error fetching popular categories: %v", err)
 		popularCategories = []PopularCategory{} // Provide an empty slice on error
 	}
-	
+
 	// Check if the post is liked or disliked by the user
 	var isLiked, isDisliked bool
 	err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostLikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isLiked)
@@ -269,7 +234,7 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 		"PopularCategory": popularCategories,
 		"PostLikedOrNot":  postLikedOrNot,
 	}
-	
+
 	// Parse the template file
 	t, err := template.ParseFiles("templates/view_post.html")
 	if err != nil {
@@ -295,4 +260,62 @@ func getPostIDFromURL(r *http.Request) (int, error) {
 		return 0, fmt.Errorf("invalid post ID")
 	}
 	return postID, nil
+}
+
+func createPost(userID int, postText string, selectedCategories []string) error {
+	tx, err := Db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare("INSERT INTO Posts(user_id, post_text) VALUES(?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(userID, postText)
+	if err != nil {
+		return err
+	}
+
+	lastInsertID, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	for _, categoryName := range selectedCategories {
+		var categoryID int
+		err := tx.QueryRow("SELECT category_id FROM Categories WHERE category_name = ?", categoryName).Scan(&categoryID)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec("INSERT INTO Post_Categories(post_id, category_id) VALUES(?, ?)", lastInsertID, categoryID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func getCategories() ([]Category, error) {
+	rows, err := Db.Query("SELECT category_name FROM Categories")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var categories []Category
+	for rows.Next() {
+		var category Category
+		err := rows.Scan(&category.CategoryName)
+		if err != nil {
+			return nil, err
+		}
+		categories = append(categories, category)
+	}
+	return categories, nil
 }

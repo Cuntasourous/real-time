@@ -4,34 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/register&login.css" rel="stylesheet" type="text/css">
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
 <body>
-    <div class="banner">
-        <img src="/static/img/LOGO.png" width="200" height="auto" alt="logo"/>
-        <h1>Welcome Back!</h1>
-            <a href="/register"><button class="sign-btn">SIGN UP</button></a>    
-            <a href="/home" class="guest"> Enter as guest</a>
-    </div>
-        
-        <div class="sign-form">
-        <form method="POST" action="/login">
-            <h1>Enter Account</h1>
-            <input class="account-int" type="text" name="username" placeholder="Username" required><br>
-            <input class="account-int" type="password" name="password" placeholder="Password" required><br>
-            <input class="sign-btn" type="submit" value="LOG IN">
-            </form>
+    <div class="container">
+        <div class="banner">
+            <img src="/static/img/LOGO.png" width="200" height="auto" alt="logo"/>
+            <h1>Welcome Back!</h1>
+                <a href="/register">
+                    <button class="sign-btn">SIGN UP</button>
+                </a>    
+                <p><a href="/home"> Enter as guest</a></p>
         </div>
-        
-        <style>
-            body{
-                background-color: #F5F5F5;
-                font-family: 'century gothic';
-                
-            }
-            /* #EAEEED */
             
-        </style>
+            <div class="sign-form">
+                <form method="POST" action="/login">
+                    <h1>Enter Account</h1>
+                    <input class="account-int" type="text" name="username" placeholder="Username" required><br>
+                    <input class="account-int" type="password" name="password" placeholder="Password" required><br>
+                    {{if .ErrorMessage}}
+                        <p class="error">{{.ErrorMessage}}</p>
+                    {{end}}
+                    <input class="sign-btn" type="submit" value="LOG IN">
+                    <div class="mobile-links">
+                        <a href="/register" class="login-link-mobile">
+                            <button type="button" class="mobile-btn">Don't have an account?</button>
+                        </a> 
+                        <p><a href="/home"> Enter as guest</a></p>
+                    </div>
+                </form>
+            </div>
+    </div>
 </body>
 </html>

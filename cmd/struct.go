@@ -39,6 +39,8 @@ type Comment struct {
 	LikeCount    int    `json:"like_count"`
 	DislikeCount int    `json:"dislike_count"`
 	Username     string
+	IsLiked      bool
+	IsDisliked   bool
 }
 
 // Category struct

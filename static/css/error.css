@@ -1,0 +1,99 @@
+body, html {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F5F5F5;
+    font-family: 'century gothic';
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    width: 100%;
+}
+
+.banner, .banner-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+    padding: 50px;
+}
+
+
+.banner {
+    border-bottom: solid 1px grey;
+}
+
+.logo {
+    max-width: 180px;
+    height: auto;
+    padding: 30px;
+}
+
+.error-message h1 {
+    font-size: 4rem;
+    margin: 0;
+}
+
+.error-message h2 {
+    color: #444344;
+    text-transform: uppercase;
+    margin: 10px 0;
+}
+
+.pink-rounded-button, .sign-btn {
+    background-color: #f38a82;
+    color: white;
+    border: none;
+    box-shadow: none;
+    border-radius: 5px;
+    font-family: 'century gothic';
+    font-weight: bold;
+    height: 43px;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    padding: 10px 15px;
+    opacity: 0.85;
+    margin-top: 10px;
+}
+
+.pink-rounded-button:hover, .sign-btn:hover {
+    background-color: #f3685e;
+    opacity: 1;
+}
+
+@media (min-width: 790px) {
+    .container {
+        flex-direction: row;
+    }
+    .banner {
+        border-right: solid 1px grey;
+        border-bottom: none;
+        height: 100vh;
+        width: 40%;
+        justify-content: center;
+        padding: 100px;
+    }
+    .banner-right {
+        justify-content: center;
+        height: 100vh;
+    }
+    .error-message h1 {
+        font-size: 60px;
+    }
+    .error-message h2 {
+        font-size: 20px;
+    }
+}

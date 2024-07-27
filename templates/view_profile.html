@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Username}} Profile</title>
-    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/view-profile.css" rel="stylesheet" type="text/css">
+    
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
 <body>
@@ -62,12 +64,14 @@
             </a>
             {{end}}
         </div>
+        
         <div id="right-profile">
-            <div class="greetings">
-                {{if .Username}}
-                <h3>Profile</h3>
-                {{end}}
+            <div class="Back">
+                <!-- {{if .Username}} -->
+                <a href="/home">Back</a>
+                <!-- {{end}} -->
             </div>
+
             <!-- bg -->
             <div class="profile-banner">
                 <img src="/static/img/bg-1.png" width="100%">
@@ -99,6 +103,7 @@
                             <a href="/logout">
                                 <button class="outline-pink-btn">Logout</button>
                             </a>
+                            
                         </div>
                     </div>
                 </div>
@@ -121,11 +126,7 @@
                                 <h5>{{.Username}}</h5>
                                 <p>posted on ({{.PostDate}})</p>
                               </div>
-                              <!-- <div class="post-category">
-                                {{range .Categories}}
-                                  {{.}}
-                                {{end}}
-                              </div> -->
+                          
                               <div class="post-text">
                                 {{.PostText}}
                               </div>
@@ -205,38 +206,6 @@
             </div>
         </div>
     </div>
-
-<!-- 
-    <h1>Profile for {{.Username}}</h1>
-    <p>Email: {{.Email}}</p>
-    <p>Member since: {{.DateCreated.Format "January 2, 2006"}}</p>
-
-    <h2>Your Posts</h2>
-    <ul>
-        {{range .Posts}}
-        <li><a href="/view_post/{{.PostID}}">{{.PostText}}</a></li>
-        {{else}}
-        <li>No posts yet.</li>
-        {{end}}
-    </ul>
-
-    <h2>Your Comments</h2>
-    <ul>
-        {{range .Comments}}
-        <li>On post <a href="/view_post/{{.PostID}}">View Post</a>: {{.CommentText}}</li>
-        {{else}}
-        <li>No comments yet.</li>
-        {{end}}
-    </ul>
-
-    <h2>Posts You've Liked</h2>
-    <ul>
-        {{range .LikedPosts}}
-        <li><a href="/view_post/{{.PostID}}">{{.PostText}}</a></li>
-        {{else}}
-        <li>No liked posts yet.</li>
-        {{end}}
-    </ul> -->
 
     <script>
         const tabs = document.querySelectorAll('.tab');

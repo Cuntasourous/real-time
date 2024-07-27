@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Categories</title>
-    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/view-categories.css" rel="stylesheet" type="text/css">
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
+
 <body>
+
     <div id="topbar">
         <img src="/static/img/LOGO.png" width="100px" height="auto" alt="logo"/>
     </div>
+
     <div id="flex">
         <div id="navbar">
             <!-- home -->
@@ -67,13 +71,57 @@
                 <h1>Categories</h1>
                 <br>
             </div>
-            <div id="second-bar">
-                <a href="/create_category">
-                    <button class="pink-rounded-button">
-                        Create a new category
-                    </button>
-                </a><br>
+
+            <div class="mobile-navbar">
+                <a href="/home">
+                    <div class="nav-item">
+                        <img src="/static/img/home-icon.png" alt="home">
+                        Home
+                    </div>
+                </a>
+                
+                <a href="/view_categories">
+                    <div class="active">
+                        <img src="/static/img/categories.png" alt="category">
+                        Categories
+                    </div>
+                </a>
+                <!-- create post -->
+                {{if .LoggedInUser}}
+                <a href="/create_post">
+                    <div class="nav-item">
+                        <img src="/static/img/addpost.png" alt="home">
+                        Create Post
+                    </div>
+                </a>
+                {{end}}
+                <!-- profile -->
+                {{if .LoggedInUser}}
+                <a href="/profile">
+                    <div class="nav-item">
+                        <img src="/static/img/user.png" alt="home">
+                        Profile
+                    </div>
+                </a>
+                {{end}}
+                <!-- logout -->
+                {{if .LoggedInUser}}
+                <a href="/logout">
+                    <div class="nav-item">
+                        <img src="/static/img/leave.png" alt="home">
+                        Log out
+                    </div>
+                </a>
+                {{else}}
+                <a href="/login">
+                    <div class="nav-item">
+                        <img src="/static/img/switch.png" alt="home">
+                        Login
+                    </div>
+                </a>
+                {{end}}
             </div>
+            
             <div id="category-list">
                 {{range .Categories}}
                 <a href="/category/{{.CategoryID}}">
@@ -83,6 +131,15 @@
                 </a>
                 {{end}}
             </div>
+
+            <div id="second-bar">
+                <a href="/create_category">
+                    <button class="pink-rounded-button">
+                        Create a new category
+                    </button>
+                </a><br>
+            </div>
+
         </div>
     </div>
 

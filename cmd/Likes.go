@@ -101,6 +101,7 @@ func LikeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CommentikeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	// Get the post ID from the request URL path
 	commentIDStr := strings.TrimPrefix(r.URL.Path, "/clike/")
 	CommentID, err := strconv.Atoi(commentIDStr)
@@ -208,8 +209,7 @@ func CommentikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]int{"clikeCount": clikeCount, "cdislikeCount":cdislikeCount})
-
+	json.NewEncoder(w).Encode(map[string]int{"likeCount": clikeCount, "dislikeCount":cdislikeCount})
 }
 
 func LikeHandler2(w http.ResponseWriter, r *http.Request) {

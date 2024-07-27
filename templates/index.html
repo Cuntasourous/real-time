@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lets Chat Homepage</title>
-    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/home.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
 <body>
@@ -70,6 +71,57 @@
                 <p>Lets get to work</p>
                 {{end}}
             </div>
+
+            <div class="mobile-navbar">
+                <a href="/home">
+                    <div class="active">
+                        <img src="/static/img/home-icon.png" alt="home">
+                        Home
+                    </div>
+                </a>
+                
+                <a href="/view_categories">
+                    <div class="nav-item">
+                        <img src="/static/img/categories.png" alt="category">
+                        Categories
+                    </div>
+                </a>
+                <!-- create post -->
+                {{if .LoggedInUser}}
+                <a href="/create_post">
+                    <div class="nav-item">
+                        <img src="/static/img/addpost.png" alt="home">
+                        Create Post
+                    </div>
+                </a>
+                {{end}}
+                <!-- profile -->
+                {{if .LoggedInUser}}
+                <a href="/profile">
+                    <div class="nav-item">
+                        <img src="/static/img/user.png" alt="home">
+                        Profile
+                    </div>
+                </a>
+                {{end}}
+                <!-- logout -->
+                {{if .LoggedInUser}}
+                <a href="/logout">
+                    <div class="nav-item">
+                        <img src="/static/img/leave.png" alt="home">
+                        Log out
+                    </div>
+                </a>
+                {{else}}
+                <a href="/login">
+                    <div class="nav-item">
+                        <img src="/static/img/switch.png" alt="home">
+                        Login
+                    </div>
+                </a>
+                {{end}}
+            </div>
+
             <div id="posts">
                 {{range .Posts}}
                 <div class="post-structure">
@@ -87,6 +139,7 @@
                         {{.PostText}}
                     </div>
                 </a>
+                
                 <div class="post-options">
                     <form method="POST" class="like-form">
                         <button type="submit" class="like-button" data-post-id="{{.PostID}}" data-is-liked="{{.IsLiked}}">
@@ -129,16 +182,6 @@
             </div>
         </div>
     </div>
-    <style>
-        body{
-            /* background-color: #fbfafb; */
-            background-image: url(/static/img/background.png);
-            background-size: cover; /* Optional: Cover the entire viewport */
-            background-repeat: no-repeat; /* Optional: Prevent repeating */
-            background-attachment: fixed; /* Make the background fixed */
-        }
-    </style>
-
     <script src="/js/index.js"></script>
     <script src="/js/keepHeartRed.js"></script>
 </body>

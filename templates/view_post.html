@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Post.PostText}}</title>
-    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <title>Post {{.Post.PostID}}</title>
+    <link href="/static/css/view-post.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
+
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
 <body>
@@ -64,6 +66,7 @@
         </div>
     <div id="middle-posts">
         <div class="greetings">
+            <a class="Back" href="/home">Back</a>
             <br>
             <br>
         </div>
@@ -104,7 +107,7 @@
         </div>
         <div id="comment-form">
             {{if .LoggedInUser}}
-                <form method="POST" action="">
+                <form method="POST">
                     <textarea name="comment_text" placeholder="Enter your comment" required></textarea>
                     <button id="reply-button" type="submit">Reply</button>
                 </form>
@@ -128,32 +131,21 @@
                 <br>
                 <div class="comment-option">
                     {{if $.LoggedInUser}}
-                    <!-- <form method="POST" action="/clike/{{.CommentID}}">
-                    <button type="submit"><div class="heartLike"></div></button>
-                    </form>
-                    <span id="like-count-{{.CommentID}}">{{.LikeCount}}</span> 
-                    <form method="POST" action="/cdislike/{{.CommentID}}">
-                        <button type="submit"><div class="heartDislike"></div></button>
-                    </form>
-                    <span id="dislike-count-{{.CommentID}}">{{.DislikeCount}}</span> -->
-                    <form method="POST" class="clike-form">
-                        <button type="submit" class="clike-button" data-comment-id="{{.CommentID}}">
-                            <div id="clike-heart-{{.CommentID}}" class="heartcLike"></div>
+
+                    <form method="post">
+                        <button type="submit" class="clike-button" data-comment-id="{{.CommentID}}" data-is-liked="{{.IsLiked}}">
+                            <div class="heartLike" id="clike-heart-{{.CommentID}}"></div>
                         </button>
                     </form>
-                    <b>
-                        Likes <span id="clike-count-{{.CommentID}}">{{.LikeCount}}</span>
-                    </b>
+                    <b>Likes <span id="clike-count-{{.CommentID}}">{{.LikeCount}}</span> </b>
 
-
-                    <form method="POST" class="cdislike-form">
-                        <button type="submit" class="cdislike-button" data-comment-id="{{.CommentID}}">
-                            <div id="cdislike-heart-{{.CommentID}}" class="heartcDislike"></div>
+                    <form method="post">
+                        <button type="submit" class="cdislike-button" data-comment-id="{{.CommentID}}" data-is-disliked="{{.IsDisliked}}">
+                            <div class="heartDislike" id="cdislike-heart-{{.CommentID}}"></div>
                         </button>
                     </form>
-                    <b>
-                        Dislikes <span id="cdislike-count-{{.CommentID}}">{{.DislikeCount}}</span>
-                    </b>
+                    <b>Dislikes <span id="cdislike-count-{{.CommentID}}">{{.DislikeCount}}</span></b> 
+                                      
                 {{end}}
                 </div>
             </div>
@@ -202,12 +194,6 @@
     </script>
     <script src="/js/keepHeartRed.js"></script>
     <script src="/js/index.js"></script>
-    <script src="/js/commetLike.js"></script>
-
-        <style>
-            body{
-                background-color: #fbfafb;
-            }
-        </style>
+    <script src="/js/commentLike.js"></script>
 </body>
 </html>

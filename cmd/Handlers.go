@@ -20,9 +20,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		// http.Redirect(w, r, "/login", http.StatusSeeOther)
-		// return
-		fmt.Println("guest", err)
+		fmt.Println("guest")
 	}
 
 	var username string

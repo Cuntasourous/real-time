@@ -1,0 +1,245 @@
+body{
+  background-color: #fbfafb;
+}
+
+#middle-posts{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#middle-posts .greetings{
+  margin-bottom: 50px;
+  padding-top: 30px;
+}
+
+#middle-posts .greetings h1{
+  color: #444344;
+}
+
+#middle-posts .greetings p{
+  color: #ABAAAB;
+  margin-top: -15px;
+  margin-left: 6px;
+}
+
+.post-structure{
+  margin-left: 300px;
+  background-color: white;
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+  margin-bottom: 30px;
+  padding: 15px 25px;
+  max-width: 650px;
+  margin-top: 20px;
+}
+
+.pink-rounded-button{
+  background-color: #f38a82;
+  color: white;
+  border: none;
+  box-shadow: none;
+  border-radius: 5px;
+  font-family: 'century gothic';
+  font-weight: bold;
+  height: 43px;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  padding: 10px 15px;
+  opacity: 0.85;
+}
+
+.pink-rounded-button:hover{
+  background-color: #f3685e;
+  transition: all 0.4s ease;
+  opacity: 1;
+} 
+
+.pfp{
+  width: 40px;
+  height: 40px;
+}
+
+#create-post .post-structure{
+  max-width: 500px;
+}
+
+#create-post .post-structure .flex{
+  display: flex;
+}
+
+#create-post .post-structure .flex h3{
+  margin-left: 20px;
+  margin-top: 7px;
+}
+
+#create-post .post-structure form textarea{
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-size: 15px;
+  color: #444344;
+  font-family: 'century gothic';
+  padding: 5px 10px;
+  border: none;
+  width: 500px;
+  height: 60px;
+  resize: none;
+  outline: none;
+}
+
+#create-post .post-structure form .pink-rounded-button{
+  width: 100px;
+  text-transform: uppercase;
+  margin-left: 80%;
+  letter-spacing: 2px;
+}
+
+#cat-cta-btn{
+  margin: 75px 0px;
+  margin-left: 10%;
+}
+
+#cat-cta-btn a{
+  text-decoration: none;
+  margin-right: 40px;
+}
+
+#cat-cta-btn .underline-btn{
+  text-decoration: underline solid 2px #d9717100;
+  color: black;
+  transition: all 0.3s ease;
+}
+
+#cat-cta-btn .underline-btn:hover{
+  text-decoration: underline solid 2px #d971717d;
+  transition: all 0.3s ease;
+}
+
+.underline-btn{
+  text-decoration: underline solid 2px #d9717100;
+  color: black;
+  transition: all 0.3s ease;
+}
+
+.underline-btn:hover{
+  text-decoration: underline solid 2px #d971717d;
+  transition: all 0.3s ease;
+}
+
+h4 {
+  font-size: 22px;
+  padding-left: -8px;
+}
+
+.category-item {
+  font-size: 18px;
+}
+
+.categories-div {
+  margin-left: 35%;
+}
+
+#category-checklist{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.mobile-navbar{
+  display: none;
+  border-bottom: solid 0.5px grey;
+  border-top: solid 0.5px grey;
+  padding: 25px 0px;
+}
+
+@media only screen and (max-width: 1000px) {
+  #navbar, #topbar {
+    display: none;
+  }
+  
+  #middle-posts{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-navbar{
+    display: flex;
+    flex-wrap:wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 50px;
+  }
+
+  .mobile-navbar a{
+    text-decoration: none;
+  }
+
+  .mobile-navbar a .nav-item{
+    background-color: none;
+    text-decoration: none;
+    color: grey;
+    min-width: 180px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    box-shadow: none;
+    transition: all 0.5s ease;
+  }
+
+  .mobile-navbar a .active{
+    background-color: #fa7268;
+    text-decoration: none;
+    color: white;
+    min-width: 180px;
+    height: 40px;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-navbar a:hover .nav-item{
+    background-color: #fa7268;
+    color: white;
+    font-weight: normal;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+    transition: all 0.5s ease;
+  }
+
+  .mobile-navbar a .active img, .mobile-navbar a .nav-item img{
+    width: 20px;
+    height: auto;
+    margin-left: 30px;
+    margin-right: 25px;
+  }
+
+  .post-structure{
+    margin-left: 0;
+  }
+  
+  #category-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  #middle-posts{
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .categories-div {
+    margin-left: 0;
+  }
+
+  .category-item{
+    margin: 10px;
+  }
+
+  #category-checklist{
+    gap: 10px;
+  }
+}
