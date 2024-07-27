@@ -30,13 +30,15 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		// http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println(err)
 	}
 
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		// http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println(err)
 	}
 	var categories []Category
 
@@ -84,13 +86,15 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println("Guest")
+		// http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println("Guest")
+		// http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 
 	// Extract the category ID from the URL

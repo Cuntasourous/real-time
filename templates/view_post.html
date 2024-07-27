@@ -85,20 +85,23 @@
                     {{.Post.PostText}}
                 </div>
                 <div class="post-options">
+                    {{if .LoggedInUser}}
                     <form method="POST" class="like-form">
                         <button type="submit" class="like-button" data-post-id="{{.Post.PostID}}" data-is-liked="{{.PostLikedOrNot.IsLiked}}">
                             <div id="like-heart-{{.Post.PostID}}" class="heartLike"></div>
                         </button>
                     </form>
+                    {{end}}
                     <b>
                         Likes <span id="like-count-{{.Post.PostID}}">{{.Post.LikeCount}}</span>
                     </b>
-
+                    {{if .LoggedInUser}}
                     <form method="POST" class="dislike-form">
                         <button type="submit" class="dislike-button" data-post-id="{{.Post.PostID}}" data-is-disliked="{{.PostLikedOrNot.IsDisliked}}">
                             <div id="dislike-heart-{{.Post.PostID}}" class="heartDislike"></div>
                         </button>
                     </form>
+                    {{end}}
                     <b>
                         Dislikes <span id="dislike-count-{{.Post.PostID}}">{{.Post.DislikeCount}}</span>
                     </b>
