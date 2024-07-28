@@ -131,7 +131,7 @@
                 </a>
                 {{end}}
             </div>
-
+            {{if .LoggedInUser}}
             <div id="second-bar">
                 {{if .LoggedInUser}}
                 <a href="/create_category">
@@ -141,6 +141,7 @@
                 </a><br>
                 {{end}}
             </div>
+            {{end}}
 
         </div>
     </div>

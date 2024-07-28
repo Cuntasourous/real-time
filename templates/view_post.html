@@ -95,7 +95,6 @@
                     <b>
                         Likes <span id="like-count-{{.Post.PostID}}">{{.Post.LikeCount}}</span>
                     </b>
-
                     {{if .LoggedInUser}}
                     <form method="POST" class="dislike-form">
                         <button type="submit" class="dislike-button" data-post-id="{{.Post.PostID}}" data-is-disliked="{{.PostLikedOrNot.IsDisliked}}">
