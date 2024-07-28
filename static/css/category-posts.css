@@ -178,3 +178,15 @@ body{
   }
 
 }
+
+.empty{
+  margin-left: 75%;
+  width: 175%;
+}
+
+@media only screen and (max-width: 1000px) {
+  .empty{
+    margin-left: 20%;
+    width: 175%;
+  }
+}
