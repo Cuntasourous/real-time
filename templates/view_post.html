@@ -140,16 +140,20 @@
                             <div class="heartLike" id="clike-heart-{{.CommentID}}"></div>
                         </button>
                     </form>
+                    {{end}}
+                    
                     <b>Likes <span id="clike-count-{{.CommentID}}">{{.LikeCount}}</span> </b>
 
+                    {{if $.LoggedInUser}}
                     <form method="POST">
                         <button type="submit" class="cdislike-button" data-comment-id="{{.CommentID}}" data-is-disliked="{{.IsDisliked}}">
                             <div class="heartDislike" id="cdislike-heart-{{.CommentID}}"></div>
                         </button>
                     </form>
+                    {{end}}
+
                     <b>Dislikes <span id="cdislike-count-{{.CommentID}}">{{.DislikeCount}}</span></b> 
                                       
-                {{end}}
                 </div>
             </div>
         </div>

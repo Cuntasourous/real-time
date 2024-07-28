@@ -154,6 +154,11 @@ textarea:focus {
     margin-right: 20px;
 }
 
+.comment-sec b {
+    margin-right: 10px;
+}
+
+
 #news #popular-category-box{
     background-color: white;
     padding: 5px 10px;
@@ -373,6 +378,7 @@ textarea:focus {
     cursor: pointer;
     padding: 10px 15px;
     opacity: 0.85;
+    margin: 10px
 }
 
 .pink-rounded-button:hover{
