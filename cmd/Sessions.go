@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 	"net/http"
-	"fmt"
+
 )
 
 // Helper function to set a cookie
@@ -50,7 +50,6 @@ func validateSession(sessionID string) bool {
 
     // Query the database for the session
     err := Db.QueryRow("SELECT expires_at, user_id FROM sessions WHERE id = ?", sessionID).Scan(&expiresAt, &userID)
-	fmt.Println("userid", userID)
     if err != nil {
         if err == sql.ErrNoRows {
             log.Printf("Session ID not found: %s", sessionID)
@@ -76,12 +75,14 @@ func validateSession(sessionID string) bool {
 
     // Delete duplicate sessions if more than one session exists
     if count > 1 {
-		fmt.Println(userID)
-        _, err = Db.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
+        log.Printf("User %d has %d duplicate sessions", userID, count)
+        _, err := Db.Exec("DELETE FROM sessions WHERE id = ?", sessionID)
         if err != nil {
-            log.Printf("Error deleting duplicate sessions: %v", err)
+            log.Printf("Error deleting duplicate session: %v", err)
             return false
         }
+        log.Printf ("deleted session %s", sessionID)
+        return false
     }
 
     return true

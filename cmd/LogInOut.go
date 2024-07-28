@@ -166,6 +166,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		sessionID := uuid.New().String()
 		expiresAt := time.Now().Add(24 * time.Hour) // Set session to expire after 24 hours
 
+
 		// Insert the session into the database
 		_, err = Db.Exec("INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)", sessionID, user.UserID, time.Now(), expiresAt)
 		if err != nil {
@@ -173,6 +174,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
+		
 
 		// Commit the transaction
 		err = tx.Commit()
@@ -199,6 +201,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		// Redirect to the home page
 		http.Redirect(w, r, "/home", http.StatusSeeOther) // ... (rest of the login process remains the same)
 
+		validateSession(sessionID)
 	} else {
 		renderLoginPage(w, r, "")
 	}
