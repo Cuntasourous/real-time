@@ -133,11 +133,13 @@
             </div>
 
             <div id="second-bar">
+                {{if .LoggedInUser}}
                 <a href="/create_category">
                     <button class="pink-rounded-button">
                         Create a new category
                     </button>
                 </a><br>
+                {{end}}
             </div>
 
         </div>

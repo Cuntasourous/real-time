@@ -85,20 +85,24 @@
                     {{.Post.PostText}}
                 </div>
                 <div class="post-options">
+                    {{if .LoggedInUser}}
                     <form method="POST" class="like-form">
                         <button type="submit" class="like-button" data-post-id="{{.Post.PostID}}" data-is-liked="{{.PostLikedOrNot.IsLiked}}">
                             <div id="like-heart-{{.Post.PostID}}" class="heartLike"></div>
                         </button>
                     </form>
+                    {{end}}
                     <b>
                         Likes <span id="like-count-{{.Post.PostID}}">{{.Post.LikeCount}}</span>
                     </b>
 
+                    {{if .LoggedInUser}}
                     <form method="POST" class="dislike-form">
                         <button type="submit" class="dislike-button" data-post-id="{{.Post.PostID}}" data-is-disliked="{{.PostLikedOrNot.IsDisliked}}">
                             <div id="dislike-heart-{{.Post.PostID}}" class="heartDislike"></div>
                         </button>
                     </form>
+                    {{end}}
                     <b>
                         Dislikes <span id="dislike-count-{{.Post.PostID}}">{{.Post.DislikeCount}}</span>
                     </b>
@@ -107,7 +111,7 @@
         </div>
         <div id="comment-form">
             {{if .LoggedInUser}}
-                <form method="POST">
+                <form method="POST" action="/view_post/{{.Post.PostID}}">
                     <textarea name="comment_text" placeholder="Enter your comment" required></textarea>
                     <button id="reply-button" type="submit">Reply</button>
                 </form>
@@ -132,14 +136,14 @@
                 <div class="comment-option">
                     {{if $.LoggedInUser}}
 
-                    <form method="post">
+                    <form method="POST">
                         <button type="submit" class="clike-button" data-comment-id="{{.CommentID}}" data-is-liked="{{.IsLiked}}">
                             <div class="heartLike" id="clike-heart-{{.CommentID}}"></div>
                         </button>
                     </form>
                     <b>Likes <span id="clike-count-{{.CommentID}}">{{.LikeCount}}</span> </b>
 
-                    <form method="post">
+                    <form method="POST">
                         <button type="submit" class="cdislike-button" data-comment-id="{{.CommentID}}" data-is-disliked="{{.IsDisliked}}">
                             <div class="heartDislike" id="cdislike-heart-{{.CommentID}}"></div>
                         </button>
@@ -171,27 +175,8 @@
     </div>
 </div>
 </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-        $('#comment-form').submit(function(e) {
-            e.preventDefault();
-            var commentText = $('textarea[name="comment_text"]').val();
-            $.ajax({
-            url: '/add_comment/{{.Post.PostID}}',
-            type: 'POST',
-            data: { comment_text: commentText },
-            success: function(data) {
-            // Append the new comment to the comments list
-            $('#comments-list').append('<li>' + data.comment_text + '</li>');
-
-            // Wait for 2 seconds and then refresh the page
-            setTimeout(function() {
-            location.reload();
-            }, 1);
-            }
-            });
-            });
-    </script>
+    
+    <script src="/js/addComment.js"></script>
     <script src="/js/keepHeartRed.js"></script>
     <script src="/js/index.js"></script>
     <script src="/js/commentLike.js"></script>

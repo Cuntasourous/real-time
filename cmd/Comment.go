@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func getCommentsByPostID(postID int) ([]Comment, error) {
@@ -44,8 +45,11 @@ func handleAddComment(w http.ResponseWriter, r *http.Request, postID int) {
 
 	// Get comment text from the form
 	commentText := r.FormValue("comment_text")
+	commentText = strings.TrimSpace(commentText)
+	fmt.Println("comment Text: ", commentText)
 	if commentText == "" {
 		log.Println("there is no comment text")
+		return
 	}
 
 	// Start a transaction

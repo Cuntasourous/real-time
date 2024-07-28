@@ -1,6 +1,7 @@
 package forum
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -126,129 +127,211 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	// Extract the post_id from the URL
 	postID, err := getPostIDFromURL(r)
 	if err != nil {
-		ErrorHandler(w, r, http.StatusBadRequest)
-		return
+			ErrorHandler(w, r, http.StatusBadRequest)
+			return
 	}
 
 	if r.Method == http.MethodPost {
-		handleAddComment(w, r, postID)
+			// Handle the addition of a new comment
+			var requestData map[string]string
+			if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+					ErrorHandler(w, r, http.StatusBadRequest)
+					return
+			}
+
+			commentText, ok := requestData["comment_text"]
+			if !ok || commentText == "" {
+					ErrorHandler(w, r, http.StatusBadRequest)
+					return
+			}
+
+			// Add the comment to the database (pseudo code)
+			newComment, err := addComment(w, r, postID, commentText)
+			if err != nil {
+					ErrorHandler(w, r, http.StatusInternalServerError)
+					return
+			}
+
+			// Return the new comment as JSON
+			response := map[string]interface{}{
+					"comment": newComment,
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
+			return
 	}
 
-	// Get userID from the session
+	// Handle GET requests
 	sessionID, _ := getCookie(r, CookieName)
 	var userID int
 	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		fmt.Println("guest") // Log for debugging
+			fmt.Println("guest") // Log for debugging
 	}
 
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
-		username = "" // No username if not found
-	}
-
-	// Handle like and dislike actions
-	if r.Method == http.MethodPost {
-		action := r.URL.Path
-		if strings.HasPrefix(action, "/like2/") {
-			LikeHandler(w, r)
-			return
-		} else if strings.HasPrefix(action, "/dislike2/") {
-			DislikeHandler(w, r)
-			return
-		}
+			username = "" // No username if not found
 	}
 
 	// Fetch the post data
 	post, err := getPostByID(postID)
 	if err != nil {
-		ErrorHandler(w, r, http.StatusNotFound)
-		return
+			ErrorHandler(w, r, http.StatusNotFound)
+			return
 	}
 
 	// Fetch categories for the post
 	categories, err := getCategoriesByPostID(postID)
 	if err != nil {
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
 	}
 
 	// Fetch comments for the post
 	comments, err := getCommentsByPostID(postID)
 	if err != nil {
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
 	}
 
 	for i := 0; i < len(comments); i++ {
-		var isLiked, isDisliked bool
+			var isLiked, isDisliked bool
 
-		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM CommentLikes WHERE comment_id = ? AND user_id = ?)", comments[i].CommentID, userID).Scan(&isLiked)
-		if err != nil {
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
+			err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM CommentLikes WHERE comment_id = ? AND user_id = ?)", comments[i].CommentID, userID).Scan(&isLiked)
+			if err != nil {
+					ErrorHandler(w, r, http.StatusInternalServerError)
+					return
+			}
 
-		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM CommentDislikes WHERE comment_id = ? AND user_id = ?)", comments[i].CommentID, userID).Scan(&isDisliked)
-		if err != nil {
-			ErrorHandler(w, r, http.StatusInternalServerError)
-			return
-		}
+			err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM CommentDislikes WHERE comment_id = ? AND user_id = ?)", comments[i].CommentID, userID).Scan(&isDisliked)
+			if err != nil {
+					ErrorHandler(w, r, http.StatusInternalServerError)
+					return
+			}
 
-		comments[i].IsLiked = isLiked
-		comments[i].IsDisliked = isDisliked
+			comments[i].IsLiked = isLiked
+			comments[i].IsDisliked = isDisliked
 	}
 
 	// Fetch popular categories
 	popularCategories, err := getPopularCategories()
 	if err != nil {
-		log.Printf("Error fetching popular categories: %v", err)
-		popularCategories = []PopularCategory{} // Provide an empty slice on error
+			log.Printf("Error fetching popular categories: %v", err)
+			popularCategories = []PopularCategory{} // Provide an empty slice on error
 	}
 
 	// Check if the post is liked or disliked by the user
 	var isLiked, isDisliked bool
 	err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostLikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isLiked)
 	if err != nil {
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
 	}
 	err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostDislikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isDisliked)
 	if err != nil {
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
 	}
 
 	postLikedOrNot := PostLikedOrNot{
-		Post:       post,
-		IsLiked:    isLiked,
-		IsDisliked: isDisliked,
+			Post:       post,
+			IsLiked:    isLiked,
+			IsDisliked: isDisliked,
 	}
 
 	data := map[string]interface{}{
-		"Post":            post,
-		"Categories":      categories,
-		"Comments":        comments,
-		"LoggedInUser":    username,
-		"PopularCategory": popularCategories,
-		"PostLikedOrNot":  postLikedOrNot,
+			"Post":            post,
+			"Categories":      categories,
+			"Comments":        comments,
+			"LoggedInUser":    username,
+			"PopularCategory": popularCategories,
+			"PostLikedOrNot":  postLikedOrNot,
 	}
 
 	// Parse the template file
 	t, err := template.ParseFiles("templates/view_post.html")
 	if err != nil {
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
+			fmt.Println("here", err)
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
 	}
 
 	// Execute the template with the data
 	err = t.Execute(w, data)
 	if err != nil {
-		ErrorHandler(w, r, http.StatusInternalServerError)
-		return
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
 	}
 }
+
+
+func addComment(w http.ResponseWriter, r *http.Request, postID int, commentText string) (Comment, error) {
+	var newComment Comment
+
+	sessionID, _ := getCookie(r, CookieName)
+	var userID int
+	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
+	if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return newComment, err
+	}
+
+	result, err := Db.Exec("INSERT INTO Comments (user_id, post_id, comment_text) VALUES (?, ?, ?)", userID, postID, commentText)
+	if err != nil {
+			return newComment, err
+	}
+
+	// Get the last inserted ID
+	commentID, err := result.LastInsertId()
+	if err != nil {
+			return newComment, err
+	}
+
+	var existingLikes int
+	err = Db.QueryRow("SELECT COUNT(*) FROM CommentLikes WHERE user_id = ? AND comment_id = ?", userID, commentID).Scan(&existingLikes)
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		// http.Error(w, "Database error1", http.StatusInternalServerError)
+	}
+
+	var existingDisikes int
+	err = Db.QueryRow("SELECT COUNT(*) FROM CommentDislikes WHERE user_id = ? AND comment_id = ?", userID, commentID).Scan(&existingDisikes)
+	if err != nil {
+		// http.Error(w, "Database error4", http.StatusInternalServerError)
+		ErrorHandler(w, r, http.StatusInternalServerError)
+	}
+
+	// Fetch the newly added comment from the database
+	err = Db.QueryRow(`
+			SELECT c.comment_id, c.comment_text, u.username, 
+						 COALESCE(l.like_count, 0) as like_count, 
+						 COALESCE(d.dislike_count, 0) as dislike_count,
+						 c.user_id
+			FROM Comments c
+			JOIN users u ON c.user_id = u.user_id
+			LEFT JOIN (SELECT comment_id, COUNT(*) as like_count FROM CommentLikes GROUP BY comment_id) l ON c.comment_id = l.comment_id
+			LEFT JOIN (SELECT comment_id, COUNT(*) as dislike_count FROM CommentDislikes GROUP BY comment_id) d ON c.comment_id = d.comment_id
+			WHERE c.comment_id = ?`, commentID).Scan(
+			&newComment.CommentID,
+			&newComment.CommentText,
+			&newComment.Username,
+			&existingLikes,
+			&existingDisikes,
+			&newComment.UserID,
+	)
+	if err != nil {
+			return newComment, err
+	}
+
+	newComment.DislikeCount = existingDisikes
+	newComment.LikeCount = existingLikes
+
+	// Return the newly added comment
+	return newComment, nil
+}
+
 
 func getPostIDFromURL(r *http.Request) (int, error) {
 	pathParts := strings.Split(r.URL.Path, "/")

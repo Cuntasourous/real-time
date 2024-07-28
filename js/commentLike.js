@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', (event) => {
+    attachCommentLikeListeners();
+  });
+  
+  function attachCommentLikeListeners(){
     const likeButtons = document.querySelectorAll('.clike-button');
     const dislikeButtons = document.querySelectorAll('.cdislike-button');
   
@@ -19,13 +23,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
   
                 if (response.ok) {
                     const result = await response.json();
-                    // Update the like count in the DOM
+                    
                     const likeCountSpan = document.getElementById(`clike-count-${commentId}`);
                     const dislikeCountSpan = document.getElementById(`cdislike-count-${commentId}`);
                     likeCountSpan.textContent = result.likeCount;
                     dislikeCountSpan.textContent = result.dislikeCount;
   
-                    // Update the heart colors
                     const heartLike = button.querySelector('.heartLike');
                     const dislikeButton = document.querySelector(`.cdislike-button[data-comment-id="${commentId}"]`);
                     const heartDislike = dislikeButton.querySelector('.heartDislike');
@@ -87,5 +90,4 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         });
     });
-  });
-  
+  }

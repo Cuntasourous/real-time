@@ -30,13 +30,13 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println("guest")
 	}
 
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println("guest")
 	}
 	var categories []Category
 
@@ -84,13 +84,13 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println("guest")
 	}
 
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println("guest")
 	}
 
 	// Extract the category ID from the URL
@@ -310,6 +310,8 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	log.Println("Processing POST request for category creation")
 
 	categoryName := r.FormValue("category_name")
+	categoryName = strings.ToUpper(categoryName[:1]) + strings.ToLower(categoryName[1:])
+
 	if categoryName == "" {
 		log.Println("Empty category name submitted")
 		ErrorHandler(w, r, http.StatusBadRequest)
