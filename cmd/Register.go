@@ -22,6 +22,34 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Check if username or email already exists
+		var count int
+		err := Db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ? OR email = ?", username, email).Scan(&count)
+		if err != nil {
+			log.Printf("Error checking existing user: %v", err)
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+
+		if count > 0 {
+			// Username or email already exists
+			t, err := template.ParseFiles("templates/register.html")
+			if err != nil {
+				ErrorHandler(w, r, http.StatusInternalServerError)
+				return
+			}
+			data := struct {
+				Error string
+			}{
+				Error: "Username or email already exists",
+			}
+			err = t.Execute(w, data)
+			if err != nil {
+				ErrorHandler(w, r, http.StatusInternalServerError)
+			}
+			return
+		}
+
 		// Hash the password
 		hashedPassword, err := hashPassword(password)
 		if err != nil {
@@ -80,7 +108,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		rows, err := Db.Query("SELECT user_id FROM users WHERE username = ?", username)
 		if err != nil {
-			fmt.Println("error: ", err )
+			fmt.Println("error: ", err)
 			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
