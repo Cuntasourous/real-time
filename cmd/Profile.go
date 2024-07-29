@@ -6,12 +6,12 @@ import (
 )
 
 func ViewProfileHandler(w http.ResponseWriter, r *http.Request) {
-	if !isAuthenticated(r) {
+	if !isAuthenticated(r,w) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {

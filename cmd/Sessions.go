@@ -1,50 +1,48 @@
 package forum
 
 import (
-	"database/sql"
-	"log"
-	"time"
-	"net/http"
-
+    "database/sql"
+    "log"
+    "net/http"
+    "time"
 )
 
 // Helper function to set a cookie
 func SetCookie(w http.ResponseWriter, name string, value string, expires time.Time) {
-	cookie := &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Expires:  expires,
-		Path:     "/",
-		HttpOnly: true,
-	}
-	http.SetCookie(w, cookie)
+    cookie := &http.Cookie{
+        Name:     name,
+        Value:    value,
+        Expires:  expires,
+        Path:     "/",
+        HttpOnly: true,
+    }
+    http.SetCookie(w, cookie)
 }
 
 // Helper function to get a cookie value
-func getCookie(r *http.Request, name string) (string, bool) {
-	cookie, err := r.Cookie(name)
-	if err != nil {
-		return "", false
-	}
-	return cookie.Value, true
+func getCookie(r *http.Request, w http.ResponseWriter, name string) (string, bool) {
+    cookie, err := r.Cookie(name)
+    if err != nil {
+        return "", false
+    }
+    return cookie.Value, true
 }
 
-func isAuthenticated(r *http.Request) bool {
-	cookie, err := r.Cookie("forum_session")
-	if err != nil {
-		log.Println("No session cookie found")
-		log.Printf("Cookies received: %v", r.Cookies())
-		return false
-	}
+func isAuthenticated(r *http.Request, w http.ResponseWriter) bool {
+    cookie, err := r.Cookie("forum_session")
+    if err != nil {
+        log.Println("No session cookie found")
+        log.Printf("Cookies received: %v", r.Cookies())
+        return false
+    }
 
-	log.Printf("Session cookie found: %s", cookie.Value)
-	// Validate the session ID from the cookie with your session store
-	return validateSession(cookie.Value)
+    log.Printf("Session cookie found: %s", cookie.Value)
+    // Validate the session ID from the cookie with your session store
+    return validateSession(r, w, cookie.Value)
 }
-
 
 // validateSession checks if the session ID exists and is still valid
-func validateSession(sessionID string) bool {
+func validateSession(r *http.Request, w http.ResponseWriter, sessionID string) bool {
     var expiresAt time.Time
     var userID int
 
@@ -73,16 +71,32 @@ func validateSession(sessionID string) bool {
         return false
     }
 
-    // Delete duplicate sessions if more than one session exists
+    // Delete the oldest session if more than one session exists
     if count > 1 {
-        log.Printf("User %d has %d duplicate sessions", userID, count)
-        _, err := Db.Exec("DELETE FROM sessions WHERE id = ?", sessionID)
+        var oldestSessionID string
+        err = Db.QueryRow("SELECT id FROM sessions WHERE user_id = ? ORDER BY created_at ASC LIMIT 1", userID).Scan(&oldestSessionID)
         if err != nil {
-            log.Printf("Error deleting duplicate session: %v", err)
+            log.Printf("Error fetching oldest session ID: %v", err)
             return false
         }
-        log.Printf ("deleted session %s", sessionID)
-        return false
+
+        _, err = Db.Exec("DELETE FROM sessions WHERE id = ?", oldestSessionID)
+        if err != nil {
+            log.Printf("Error deleting oldest session: %v", err)
+            return false
+        }
+
+        log.Printf("Deleted oldest session: %s", oldestSessionID)
+
+        // Update the expiration time of the current session
+        newExpiration := time.Now().Add(4 * time.Hour) // Example: extending the session by 4 hours
+        _, err = Db.Exec("UPDATE sessions SET expires_at = ? WHERE id = ?", newExpiration, sessionID)
+        if err != nil {
+            log.Printf("Error updating session expiration: %v", err)
+            return false
+        }
+
+        log.Printf("Updated expiration time for session: %s", sessionID)
     }
 
     return true

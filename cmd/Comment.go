@@ -87,13 +87,13 @@ func handleAddComment(w http.ResponseWriter, r *http.Request, postID int) {
 }
 
 func HandleAddCommentAJAX(w http.ResponseWriter, r *http.Request) {
-	if !isAuthenticated(r) {
+	if !isAuthenticated(r,w) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {

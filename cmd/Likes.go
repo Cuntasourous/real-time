@@ -21,7 +21,7 @@ func LikeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -111,7 +111,7 @@ func CommentikeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {

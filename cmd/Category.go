@@ -26,7 +26,7 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 
 func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -80,7 +80,7 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -172,7 +172,7 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 func renderCategoryForm(w http.ResponseWriter, r *http.Request) {
 	// log.Println("Rendering category creation form")
 
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -244,7 +244,7 @@ func getCategoriesByPostID(postID int) ([]string, error) {
 }
 
 func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {

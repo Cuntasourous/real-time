@@ -11,13 +11,13 @@ import (
 )
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
-	if !isAuthenticated(r) {
+	if !isAuthenticated(r,w) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -162,7 +162,7 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle GET requests
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err = Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -270,7 +270,7 @@ func HandleViewPost(w http.ResponseWriter, r *http.Request) {
 func addComment(w http.ResponseWriter, r *http.Request, postID int, commentText string) (Comment, error) {
 	var newComment Comment
 
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {

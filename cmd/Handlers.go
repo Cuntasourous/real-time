@@ -11,7 +11,7 @@ import (
 func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, CookieName)
+	sessionID, _ := getCookie(r,w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -132,7 +132,7 @@ func HandleRoot(w http.ResponseWriter, r *http.Request) {
 		ErrorHandler(w, r, http.StatusNotFound)
 		return
 	}
-	if isAuthenticated(r) {
+	if isAuthenticated(r,w) {
 		log.Println("handleRoot: User authenticated, redirecting to /home")
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
