@@ -9,11 +9,6 @@ import (
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	if !isAuthenticated(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		fmt.Println("inauthenticated so we sent you to login")
-		return
-	}
 
 	// Get the session ID from the cookie
 	sessionID, _ := getCookie(r, CookieName)

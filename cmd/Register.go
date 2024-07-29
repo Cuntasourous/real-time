@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,13 +13,16 @@ import (
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		username := r.FormValue("username")
-		email := r.FormValue("email")
-		password := r.FormValue("password")
+		username := strings.TrimSpace(r.FormValue("username"))
+		username = strings.ToUpper(username[:1]) + strings.ToLower(username[1:])
+
+		email := strings.TrimSpace(r.FormValue("email"))
+		password := strings.TrimSpace(r.FormValue("password"))
+
 
 		if username == "" || email == "" || password == "" {
 			// http.Error(w, "Please fill in all fields", http.StatusBadRequest)
-			ErrorHandler(w, r, http.StatusBadRequest)
+			renderLoginPage(w, r, "Invalid username, email or password")
 			return
 		}
 
