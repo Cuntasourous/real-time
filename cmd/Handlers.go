@@ -132,7 +132,7 @@ func HandleRoot(w http.ResponseWriter, r *http.Request) {
 		ErrorHandler(w, r, http.StatusNotFound)
 		return
 	}
-	if isAuthenticated(r,w) {
+	if isAuthenticated(r) {
 		log.Println("handleRoot: User authenticated, redirecting to /home")
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return

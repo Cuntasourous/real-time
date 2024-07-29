@@ -13,10 +13,9 @@ import (
 func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// Handle GET request
 		renderCategoryForm(w, r)
+
 	case http.MethodPost:
-		// Handle POST request
 		handleCreateCategory(w, r)
 	default:
 		// http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -131,22 +130,56 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var posts []Post
+	var posts []struct {
+		Post
+		IsLiked bool
+		IsDisliked bool
+	}
+
 	for rows.Next() {
 		var post Post
 		err := rows.Scan(&post.PostID, &post.UserID, &post.PostText, &post.PostDate, &post.LikeCount, &post.DislikeCount, &post.Username)
 		if err != nil {
-			// http.Error(w, "Error scanning posts", http.StatusInternalServerError)
 			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
 		}
-		posts = append(posts, post)
+		var isLiked, isDisliked bool
+		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostLikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isLiked)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+		err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM PostDislikes WHERE post_id = ? AND user_id = ?)", post.PostID, userID).Scan(&isDisliked)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+
+		posts = append(posts, struct {
+			Post
+			IsLiked bool
+			IsDisliked bool
+		}{
+			Post:    post,
+			IsLiked: isLiked,
+			IsDisliked: isDisliked,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		fmt.Println("Error iterating over database results")
+		return
 	}
 
 	// Prepare data for the template
 	data := struct {
 		CategoryName string
-		Posts        []Post
+		Posts           []struct {
+			Post
+			IsLiked bool
+			IsDisliked bool
+		}
 		LoggedInUser string
 	}{
 		CategoryName: categoryName,
@@ -259,14 +292,13 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Processing POST request for category creation")
 
-	categoryName := r.FormValue("category_name")
-	categoryName = strings.ToUpper(categoryName[:1]) + strings.ToLower(categoryName[1:])
-
+	categoryName := strings.TrimSpace(r.FormValue("category_name"))
 	if categoryName == "" {
 		log.Println("Empty category name submitted")
 		ErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
+	categoryName = strings.ToUpper(categoryName[:1]) + strings.ToLower(categoryName[1:])
 
 	log.Printf("Attempting to create category: %s", categoryName)
 

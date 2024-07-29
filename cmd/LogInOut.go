@@ -1,32 +1,26 @@
 package forum
 
 import (
-	"database/sql"
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
 	"time"
-
+	"strings"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
-	if isAuthenticated(r,w) {
+	if isAuthenticated(r) {
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
 	}
 
 	if r.Method == "POST" {
-		username := strings.TrimSpace(r.FormValue("username"))
-		password := strings.TrimSpace(r.FormValue("password"))
+		username := r.FormValue("username")
+		username = strings.ToUpper(username[:1]) + strings.ToLower(username[1:])
 
-		// Basic validation
-		if username == "" || password == "" {
-			renderLoginPage(w, r, "Please fill in all fields")
-			return
-		}
+		password := r.FormValue("password")
 
 		// Start a transaction
 		tx, err := Db.Begin()
@@ -41,11 +35,6 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		var user User
 		err = tx.QueryRow("SELECT user_id, username, email, password, date_created FROM users WHERE username = ?", username).Scan(&user.UserID, &user.Username, &user.Email, &user.Password, &user.DateCreated)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				log.Printf("User not found for username: %s", username)
-				renderLoginPage(w, r, "Invalid username or password")
-				return
-			}
 			log.Printf("Error querying user: %v", err)
 			ErrorHandler(w, r, http.StatusInternalServerError)
 			return
@@ -97,7 +86,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		// Redirect to the home page
 		http.Redirect(w, r, "/home", http.StatusSeeOther) // ... (rest of the login process remains the same)
 
-		validateSession(r,w,sessionID)
+		validateSession(sessionID)
 	} else {
 		renderLoginPage(w, r, "")
 	}

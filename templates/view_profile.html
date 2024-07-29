@@ -67,9 +67,7 @@
         
         <div id="right-profile">
             <div class="Back">
-                <!-- {{if .Username}} -->
                 <a href="/home">Back</a>
-                <!-- {{end}} -->
             </div>
 
             <!-- bg -->
@@ -99,6 +97,10 @@
                                 <h4>Posts Liked</h4>
                                 <h5>{{.LikedPostCount}}</h5>
                             </div>
+                            <div class="stat-column">
+                              <h4>Posts Disliked</h4>
+                              <h5>{{.DislikeCount}}</h5>
+                          </div>
                             <div class="stat-column"></div>
                             <a href="/logout">
                                 <button class="outline-pink-btn">Logout</button>
@@ -113,6 +115,7 @@
                     <div class="tab active" data-target="posts">Posts</div>
                     <div class="tab" data-target="comments">Comments</div>
                     <div class="tab" data-target="liked-posts">Liked Posts</div>
+                    <div class="tab" data-target="disliked-posts">Disiked Posts</div>
                 </div>
                 
                 <div class="content">
@@ -202,6 +205,34 @@
                             <p>No liked posts yet.</p> 
                             {{end}}
                     </div>
+                    <div class="disliked-posts">
+                      {{range .DislikedPosts}}
+                      <a href="/view_post/{{.PostID}}">
+                          <a href="/view_post/{{.PostID}}">
+                              <div class="post-structure">
+                                    <div class="username">
+                                      <h5>{{.Username}}</h5>
+                                      <p>posted on ({{.PostDate}})</p>
+                                    </div>
+                                    <div class="post-text">
+                                      {{.PostText}}
+                                    </div>
+                                  <div class="post-options">
+                                    <b>
+                                      Likes <span id="like-count-{{.PostID}}"> {{.LikeCount}}</span>
+                                    </b>
+      
+                                    <b>
+                                      Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
+                                    </b>
+                                  </div>
+                              </div>
+                              </a>
+                      </a>
+                      {{else}}
+                      <p>No disliked posts yet.</p> 
+                      {{end}}
+                    </div>
                 </div>
             </div>
         </div>
@@ -209,7 +240,7 @@
 
     <script>
         const tabs = document.querySelectorAll('.tab');
-        const contentSections = document.querySelectorAll('.posts, .comments, .liked-posts');
+        const contentSections = document.querySelectorAll('.posts, .comments, .liked-posts, .disliked-posts');
         
         tabs.forEach(tab => {
           tab.addEventListener('click', () => {

@@ -11,7 +11,7 @@ import (
 )
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
-	if !isAuthenticated(r,w) {
+	if !isAuthenticated(r) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}

@@ -90,7 +90,9 @@ type UserProfile struct {
 	Posts          []Post
 	Comments       []Comment
 	LikedPosts     []Post
+	DislikedPosts     []Post
 	PostCount      int
 	CommentCount   int
 	LikedPostCount int
+	DislikeCount int
 }

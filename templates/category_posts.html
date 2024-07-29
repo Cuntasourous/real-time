@@ -135,9 +135,23 @@
                         </div>
                     </a>
                         <div class="post-options">
+                            {{if $.LoggedInUser}}
+                            <form method="POST" class="like-form">
+                                <button type="submit" class="like-button" data-post-id="{{.PostID}}" data-is-liked="{{.IsLiked}}">
+                                    <div id="like-heart-{{.PostID}}" class="heartLike"></div>
+                                </button>
+                            </form>
+                            {{end}}
                             <b>
                             Likes <span id="like-count-{{.PostID}}"> {{.LikeCount}}</span>
                             </b>
+                            {{if $.LoggedInUser}}
+                            <form method="POST" class="dislike-form">
+                                <button type="submit" class="dislike-button" data-post-id="{{.PostID}}" data-is-disliked="{{.IsDisliked}}">
+                                    <div id="dislike-heart-{{.PostID}}" class="heartDislike"></div>
+                                </button>
+                            </form>
+                            {{end}}
                             <b>
                             Dislikes <span id="dislike-count-{{.PostID}}">{{.DislikeCount}}</span>
                         </b>
@@ -150,5 +164,8 @@
             </div>
         </div>
     </div>
+    <script src="/js/index.js"></script>
+    <script src="/js/keepHeartRed.js"></script>
+
 </body>
 </html>

@@ -261,15 +261,15 @@ body{
   display: flex;
 }
 
-.posts, .comments, .liked-posts {
+.posts, .comments, .liked-posts, .disliked-posts {
   display: none; /* Initially hide all content sections */
 }
 
-.posts.active, .comments.active, .liked-posts.active {
+.posts.active, .comments.active, .liked-posts.active, .disliked-posts.active {
   display: block; /* Show the active content section */
 }
 
-.comments a, .liked-posts a, .posts a {
+.comments a, .liked-posts a, .posts a, .disliked-posts a {
   text-decoration: none;
   color: #444344;
 }

@@ -3,10 +3,11 @@ package forum
 import (
 	"html/template"
 	"net/http"
+	"fmt"
 )
 
 func ViewProfileHandler(w http.ResponseWriter, r *http.Request) {
-	if !isAuthenticated(r,w) {
+	if !isAuthenticated(r) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -33,6 +34,7 @@ func ViewProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = t.Execute(w, profile)
 	if err != nil {
+		fmt.Println("here", err)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
@@ -103,6 +105,26 @@ func getUserProfile(userID int) (UserProfile, error) {
 		profile.LikedPosts = append(profile.LikedPosts, post)
 	}
 	profile.LikedPostCount = len(profile.LikedPosts)
+
+	// Fetch user's disliked posts and count
+	rows, err = Db.Query(`
+        SELECT p.post_id, p.user_id, p.post_text, p.post_date, p.like_count, p.dislike_count
+        FROM Posts p
+        JOIN PostDislikes pdl ON p.post_id = pdl.post_id
+        WHERE pdl.user_id = ?`, userID)
+	if err != nil {
+		return profile, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post Post
+		if err := rows.Scan(&post.PostID, &post.UserID, &post.PostText, &post.PostDate, &post.LikeCount, &post.DislikeCount); err != nil {
+			return profile, err
+		}
+		profile.DislikedPosts = append(profile.DislikedPosts, post)
+	}
+	profile.DislikeCount = len(profile.DislikedPosts)
 
 	return profile, nil
 }

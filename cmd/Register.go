@@ -13,18 +13,11 @@ import (
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		username := strings.TrimSpace(r.FormValue("username"))
+		username := r.FormValue("username")
 		username = strings.ToUpper(username[:1]) + strings.ToLower(username[1:])
 
-		email := strings.TrimSpace(r.FormValue("email"))
-		password := strings.TrimSpace(r.FormValue("password"))
-
-
-		if username == "" || email == "" || password == "" {
-			// http.Error(w, "Please fill in all fields", http.StatusBadRequest)
-			renderLoginPage(w, r, "Invalid username, email or password")
-			return
-		}
+		email := r.FormValue("email")
+		password := r.FormValue("password")
 
 		// Check if username or email already exists
 		var count int
@@ -39,6 +32,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Username or email already exists
 			t, err := template.ParseFiles("templates/register.html")
 			if err != nil {
+
 				ErrorHandler(w, r, http.StatusInternalServerError)
 				return
 			}
