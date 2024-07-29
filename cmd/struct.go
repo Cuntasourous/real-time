@@ -9,7 +9,6 @@ var Db *sql.DB // Declare db globally
 var CookieName = "forum_session"
 var SessionDuration = 24 * time.Hour // Session duration (24 hours)
 
-// User struct
 type User struct {
 	UserID      int       `json:"user_id"`
 	Username    string    `json:"username"`
@@ -18,7 +17,6 @@ type User struct {
 	DateCreated time.Time `json:"date_created"`
 }
 
-// Post struct
 type Post struct {
 	PostID       int    `json:"post_id"`
 	UserID       int    `json:"user_id"`
@@ -43,20 +41,17 @@ type Comment struct {
 	IsDisliked   bool
 }
 
-// Category struct
 type Category struct {
 	CategoryID   int    `json:"category_id"`
 	CategoryName string `json:"category_name"`
 }
 
-// popular category
 type PopularCategory struct {
 	CategoryID   int
 	CategoryName string
 	PostCount    int
 }
 
-// session
 type Session struct {
 	ID        string    `json:"id"`
 	UserID    int       `json:"user_id"`

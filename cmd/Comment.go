@@ -36,12 +36,6 @@ func getCommentsByPostID(postID int) ([]Comment, error) {
 }
 
 func handleAddComment(w http.ResponseWriter, r *http.Request, postID int) {
-	// Extract post_id from the URL
-	// postID, err := getPostIDFromURL(r)
-	// if err != nil {
-	// 	http.Error(w, "Invalid post ID", http.StatusBadRequest)
-	// 	return
-	// }
 
 	// Get comment text from the form
 	commentText := r.FormValue("comment_text")

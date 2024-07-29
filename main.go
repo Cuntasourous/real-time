@@ -5,6 +5,7 @@ import (
 	forum "forum/cmd"
 	"log"
 	"net/http"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -30,8 +31,6 @@ func main() {
 	http.HandleFunc("/dislike/", forum.DislikeHandler)
 	http.HandleFunc("/clike/", forum.CommentikeHandler)
 	http.HandleFunc("/cdislike/", forum.CommentDislikeHandler)
-	// http.HandleFunc("/like2/", forum.LikeHandler2)
-	// http.HandleFunc("/dislike2/", forum.DislikeHandler2)
 	http.HandleFunc("/home", forum.Handler)
 	http.HandleFunc("/", forum.HandleRoot)
 	http.HandleFunc("/debug", func(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +54,6 @@ func main() {
 	js := http.FileServer(http.Dir("js"))
 	http.Handle("/js/", http.StripPrefix("/js/", js))
 
-	//go live
 	log.Print("http://localhost:8080/")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {

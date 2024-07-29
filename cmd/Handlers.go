@@ -9,11 +9,11 @@ import (
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// if !isAuthenticated(r) {
-	// 	http.Redirect(w, r, "/login", http.StatusSeeOther)
-	// 	fmt.Println("inauthenticated so we sent you to login")
-	// 	return
-	// }
+	if !isAuthenticated(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		fmt.Println("inauthenticated so we sent you to login")
+		return
+	}
 
 	// Get the session ID from the cookie
 	sessionID, _ := getCookie(r, CookieName)
@@ -26,9 +26,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	var username string
 	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
 	if err != nil {
-		// http.Redirect(w, r, "/login", http.StatusSeeOther)
 		username = ""
-		// return
 	}
 
 	// Query the database for all posts
@@ -50,7 +48,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
         ORDER BY p.post_date DESC
     `)
 	if err != nil {
-		fmt.Println("here", err)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}

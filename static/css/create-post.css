@@ -16,6 +16,8 @@ body{
 
 #middle-posts .greetings h1{
   color: #444344;
+  margin: 0;
+  padding: 0;
 }
 
 #middle-posts .greetings p{
@@ -169,7 +171,7 @@ h4 {
     flex-wrap:wrap;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 50px;
+    margin-top: 0;
   }
 
   .mobile-navbar a{

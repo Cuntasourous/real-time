@@ -1,7 +1,6 @@
 package forum
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 )
@@ -22,21 +21,18 @@ func ViewProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := getUserProfile(userID)
 	if err != nil {
-		fmt.Println("here1", err)
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	t, err := template.ParseFiles("templates/view_profile.html")
 	if err != nil {
-		fmt.Println("here2")
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	err = t.Execute(w, profile)
 	if err != nil {
-		fmt.Println("here3")
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}

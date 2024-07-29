@@ -31,6 +31,10 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
 		data = ErrorData{
 			Message: "The method is not allowed for the requested URL.",
 		}
+	case http.StatusConflict:
+		data = ErrorData{
+			Message: "Conflict",
+		}
 	default:
 		data = ErrorData{
 			Message: "An unexpected error occurred.",
@@ -40,13 +44,11 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
 
 	parsedTemplate, err := template.ParseFiles("error/error.html")
 	if err != nil {
-		// Directly write the error message with status code
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 		return
 	}
 
-	// Write the response header only once
-	// w.WriteHeader(status)
+	w.WriteHeader(status)
 	err = parsedTemplate.Execute(w, data)
 	if err != nil {
 		// Log the error for debugging purposes

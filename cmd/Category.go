@@ -243,56 +243,6 @@ func getCategoriesByPostID(postID int) ([]string, error) {
 	return categories, nil
 }
 
-// func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
-// 	log.Println("Processing POST request for category creation")
-
-// 	categoryName := r.FormValue("category_name")
-// 	if categoryName == "" {
-// 		log.Println("Empty category name submitted")
-// 		ErrorHandler(w, r, http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	log.Printf("Attempting to create category: %s", categoryName)
-
-// 	// Start a transaction
-// 	tx, err := Db.Begin()
-// 	if err != nil {
-// 		log.Printf("Error starting transaction: %v", err)
-// 		ErrorHandler(w, r, http.StatusInternalServerError)
-// 		return
-// 	}
-// 	defer tx.Rollback() // Roll back the transaction if it's not committed
-
-// 	// Insert the category into the Categories table
-// 	result, err := tx.Exec("INSERT INTO Categories(category_name) VALUES(?)", categoryName)
-// 	if err != nil {
-// 		log.Printf("Error inserting category: %v", err)
-// 		ErrorHandler(w, r, http.StatusInternalServerError)
-// 		// http.Error(w, "Error creating category", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	// Get the last inserted ID
-// 	lastInsertID, err := result.LastInsertId()
-// 	if err != nil {
-// 		log.Printf("Error getting last inserted ID: %v", err)
-// 	} else {
-// 		log.Printf("Category created with ID: %d", lastInsertID)
-// 	}
-
-// 	// Commit the transaction
-// 	if err = tx.Commit(); err != nil {
-// 		log.Printf("Error committing transaction: %v", err)
-// 		// http.Error(w, "Error creating category", http.StatusInternalServerError)
-// 		ErrorHandler(w, r, http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	log.Println("Category created successfully")
-// 	http.Redirect(w, r, "/home", http.StatusSeeOther)
-// }
-
 func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	sessionID, _ := getCookie(r, CookieName)
 	var userID int
