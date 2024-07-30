@@ -23,7 +23,9 @@
                 <input class="account-int" type="text" name="username" placeholder="Username" pattern="^[1-9a-zA-Z]+$" title="Name must only contain letters and numbers" required><br>
                 <input class="account-int" type="email" name="email" placeholder="Email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="Please enter a valid email address" required><br>
                 <input class="account-int" type="password" name="password" placeholder="Password" pattern="^[^\s]+$" title="Password must not contain spaces" required><br>
-                
+                {{if .Error}}
+                    <p style="color: red;">{{.Error}}</p>
+                {{end}}
                 <input class="sign-btn" type="submit" value="REGISTER">
                 <div class="mobile-links">
                     <a href="/login" class="mobile-link-login">

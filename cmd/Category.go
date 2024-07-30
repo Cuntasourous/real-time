@@ -79,7 +79,7 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, w, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -132,7 +132,7 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var posts []struct {
 		Post
-		IsLiked    bool
+		IsLiked bool
 		IsDisliked bool
 	}
 
@@ -157,11 +157,11 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 		posts = append(posts, struct {
 			Post
-			IsLiked    bool
+			IsLiked bool
 			IsDisliked bool
 		}{
-			Post:       post,
-			IsLiked:    isLiked,
+			Post:    post,
+			IsLiked: isLiked,
 			IsDisliked: isDisliked,
 		})
 	}
@@ -175,9 +175,9 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Prepare data for the template
 	data := struct {
 		CategoryName string
-		Posts        []struct {
+		Posts           []struct {
 			Post
-			IsLiked    bool
+			IsLiked bool
 			IsDisliked bool
 		}
 		LoggedInUser string
@@ -205,7 +205,7 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 func renderCategoryForm(w http.ResponseWriter, r *http.Request) {
 	// log.Println("Rendering category creation form")
 
-	sessionID, _ := getCookie(r, w, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -277,7 +277,7 @@ func getCategoriesByPostID(postID int) ([]string, error) {
 }
 
 func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
-	sessionID, _ := getCookie(r, w, CookieName)
+	sessionID, _ := getCookie(r, w,CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -295,16 +295,28 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	categoryName := strings.TrimSpace(r.FormValue("category_name"))
 	if categoryName == "" {
 		log.Println("Empty category name submitted")
-		errMsg := "Category name cannot be empty or spaces"
-		if len(categoryName) > 12 {
-			errMsg = "Category name too long"
-		}
 		data := struct {
 			LoggedInUser string
 			ErrorMessage string
 		}{
 			LoggedInUser: username,
-			ErrorMessage: errMsg,
+			ErrorMessage: "Category name cannot be empty or spaces",
+		}
+		t, err := template.ParseFiles("templates/create_category.html")
+		err = t.Execute(w, data)
+		if err != nil {
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+		return
+	} else if len(categoryName) > 10 {
+		log.Println("Too long category name submitted")
+		data := struct {
+			LoggedInUser string
+			ErrorMessage string
+		}{
+			LoggedInUser: username,
+			ErrorMessage: "Category name is too long",
 		}
 		t, err := template.ParseFiles("templates/create_category.html")
 		err = t.Execute(w, data)

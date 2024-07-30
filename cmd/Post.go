@@ -48,6 +48,28 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 		selectedCategories := r.Form["categories"]
 
+		if len(post_text) > 128 {
+			data := struct {
+				LoggedInUser string
+				Categories   []Category
+				ErrorMessage string
+			}{
+				LoggedInUser: username,
+				Categories:   categories,
+				ErrorMessage: "Maximum number of charachters is 128 words",
+			}
+			t, err := template.ParseFiles("templates/create_post.html")
+			if err != nil {
+				ErrorHandler(w, r, http.StatusInternalServerError)
+				return
+			}
+			err = t.Execute(w, data)
+			if err != nil {
+				ErrorHandler(w, r, http.StatusInternalServerError)
+			}
+			return
+		}
+
 		if post_text == "" || len(selectedCategories) == 0 {
 			data := struct {
 				LoggedInUser string

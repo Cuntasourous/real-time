@@ -46,7 +46,7 @@ func main() {
 	http.HandleFunc("/view_post/", forum.HandleViewPost)
 	http.HandleFunc("/add_comment/", forum.HandleAddCommentAJAX)
 	http.HandleFunc("/profile", forum.ViewProfileHandler)
-	//Error pages
+	
 	// Serve static files
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
