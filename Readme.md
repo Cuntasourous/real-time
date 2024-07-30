@@ -15,11 +15,11 @@ go run .
 ```
 
 ## Docker 
-To run docker file  
+To run docker file do the following or simply run sh docker.sh
 ```
-docker build -t forum-app .
+docker image build -f Dockerfile -t dockerize .
 
-docker container run -p 8081:8081 --name forum dockerize
+docker container run -p 8080:8080 --name forum dockerize
 ```
 
 ## Contributors 

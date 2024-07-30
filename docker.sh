@@ -5,3 +5,9 @@ docker image build -f Dockerfile -t dockerize .
 # -f specifies the path
 # Run the docker container from the image made above
 docker container run -p 8080:8080 --name forum dockerize
+
+# clean up docker containers and images
+docker stop forum
+docker rm forum
+docker rmi dockerize
+docker ps -a
