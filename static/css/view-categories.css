@@ -8,7 +8,7 @@ body{
 #middle-posts{
   display: flex;
   flex-direction: column;
-  margin-left: 25%;
+  margin-left: 20%;
 }
 
 #category-list {
@@ -391,7 +391,7 @@ body{
   #middle-posts{
     justify-content: center;
     align-items: center;
-    margin-left: auto;
+    margin: auto;
   }
 
 }

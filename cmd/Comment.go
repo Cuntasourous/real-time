@@ -87,7 +87,7 @@ func handleAddComment(w http.ResponseWriter, r *http.Request, postID int) {
 }
 
 func HandleAddCommentAJAX(w http.ResponseWriter, r *http.Request) {
-	if !isAuthenticated(r) {
+	if !isAuthenticated(r, w) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}

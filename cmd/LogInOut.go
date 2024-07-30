@@ -11,7 +11,7 @@ import (
 )
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
-	if isAuthenticated(r) {
+	if isAuthenticated(r, w) {
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
 	}
@@ -86,7 +86,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		// Redirect to the home page
 		http.Redirect(w, r, "/home", http.StatusSeeOther) // ... (rest of the login process remains the same)
 
-		validateSession(sessionID)
+		validateSession(r, w, sessionID)
 	} else {
 		renderLoginPage(w, r, "")
 	}
