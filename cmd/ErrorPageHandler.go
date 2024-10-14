@@ -1,6 +1,7 @@
 package forum
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -53,5 +54,7 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
 	if err != nil {
 		// Log the error for debugging purposes
 		log.Printf("Error executing error.html template")
+		// Set the response status code
 	}
+	fmt.Fprintf(w, "Error: %d - Something went wrong.", status)
 }

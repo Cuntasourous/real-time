@@ -33,6 +33,8 @@ func main() {
 	http.HandleFunc("/cdislike/", forum.CommentDislikeHandler)
 	http.HandleFunc("/home", forum.Handler)
 	http.HandleFunc("/", forum.HandleRoot)
+	http.HandleFunc("/chat", forum.ChatHandler)
+	http.HandleFunc("/send-message", forum.SendMessageHandler)
 	http.HandleFunc("/debug", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Debug: Request to %s", r.URL.Path)
 	})
@@ -46,7 +48,7 @@ func main() {
 	http.HandleFunc("/view_post/", forum.HandleViewPost)
 	http.HandleFunc("/add_comment/", forum.HandleAddCommentAJAX)
 	http.HandleFunc("/profile", forum.ViewProfileHandler)
-	
+
 	// Serve static files
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))

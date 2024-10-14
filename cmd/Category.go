@@ -79,7 +79,7 @@ func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r, w,CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -132,7 +132,7 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var posts []struct {
 		Post
-		IsLiked bool
+		IsLiked    bool
 		IsDisliked bool
 	}
 
@@ -157,11 +157,11 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 		posts = append(posts, struct {
 			Post
-			IsLiked bool
+			IsLiked    bool
 			IsDisliked bool
 		}{
-			Post:    post,
-			IsLiked: isLiked,
+			Post:       post,
+			IsLiked:    isLiked,
 			IsDisliked: isDisliked,
 		})
 	}
@@ -175,9 +175,9 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Prepare data for the template
 	data := struct {
 		CategoryName string
-		Posts           []struct {
+		Posts        []struct {
 			Post
-			IsLiked bool
+			IsLiked    bool
 			IsDisliked bool
 		}
 		LoggedInUser string
@@ -205,7 +205,7 @@ func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 func renderCategoryForm(w http.ResponseWriter, r *http.Request) {
 	// log.Println("Rendering category creation form")
 
-	sessionID, _ := getCookie(r, w,CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -277,7 +277,7 @@ func getCategoriesByPostID(postID int) ([]string, error) {
 }
 
 func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
-	sessionID, _ := getCookie(r, w,CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -353,6 +353,14 @@ func handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 			}{
 				LoggedInUser: username,
 				ErrorMessage: "That category name already exists",
+			}
+
+			// Update the user's last active time
+			err = updateUserLastActivity(userID)
+			if err != nil {
+				log.Printf("Error updating last active time: %v", err)
+				ErrorHandler(w, r, http.StatusInternalServerError)
+				return
 			}
 
 			// Parse and execute the template

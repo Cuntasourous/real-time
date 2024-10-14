@@ -9,8 +9,6 @@
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
 </head>
 <body>
-
-
     <div id="topbar">
         <img src="/static/img/LOGO.png" width="100px" height="auto" alt="logo"/>
     </div>
@@ -39,6 +37,15 @@
                 </div>
             </a>
             {{end}}
+            <!-- chat -->
+            <!-- {{if .LoggedInUser}} -->
+            <a href="/chat">
+                <div class="nav-item">
+                    <img src="/static/img/chat.png" alt="chat">
+                    Chat
+                </div>
+            </a>
+            <!-- {{end}} -->
             <!-- profile -->
             {{if .LoggedInUser}}
             <a href="/profile">
@@ -50,7 +57,7 @@
             {{end}}
             <!-- logout -->
             {{if .LoggedInUser}}
-            <a href="/logout">
+            <a href="/logout" onclick="logout()">
                 <div class="nav-item">
                     <img src="/static/img/leave.png" alt="home">
                     Log out
@@ -168,11 +175,25 @@
             </div>
         </div>
         <div id="news">
-            <img src="/static/img/climate.png" width="315px" height="auto" alt="climate">
             <div id="popular-category-box">
+                <h4>Online Users</h4>
+                {{range .OnlineUsers}}
+                <!-- category list item -->
+                <a href="#">
+                    <div class="category-box">
+                        <div class="flex">
+                            <img src="/static/img/category - pink.png" alt="category-icon">
+                            <h6>{{.Username}}</h6>
+                        </div>
+                        <p>this user is online</p>
+                    </div>
+                </a>
+                {{end}}
+            </div>
+            <!-- <img src="/static/img/climate.png" width="315px" height="auto" alt="climate"> -->
+            <!-- <div id="popular-category-box">
                 <h4>Popular Categories</h4>
                 {{range .PopularCategory}}
-                <!-- category list item -->
                 <a href="/category/{{.CategoryID}}">
                     <div class="category-box">
                         <div class="flex">
@@ -183,10 +204,12 @@
                     </div>
                 </a>
                 {{end}}
-            </div>
+            </div> -->
         </div>
     </div>
     <script src="/js/index.js"></script>
     <script src="/js/keepHeartRed.js"></script>
+    <script src="/js/CloseBrowserLogout.js"></script>
+
 </body>
 </html>

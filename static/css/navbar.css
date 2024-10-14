@@ -5,6 +5,8 @@ body{
   background-repeat: no-repeat; /* Optional: Prevent repeating */
   background-attachment: fixed; /* Make the background fixed */
   font-family: 'century gothic';
+  margin: 0 auto;
+  padding: 0;
 }
 
 /* topbar------------------------- */
@@ -24,6 +26,10 @@ body{
   padding-top: 50px;
   position: fixed;
   margin-top: 100px;
+  padding-right: 30px;
+  width: 20vw;
+  /* border-right: rgb(223, 223, 223) 1px solid; */
+  height: 80vh;
 }
 
 #flex #navbar a {

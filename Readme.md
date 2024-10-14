@@ -19,7 +19,7 @@ To run docker file do the following or simply run sh docker.sh
 ```
 docker image build -f Dockerfile -t dockerize .
 
-docker container run -p 8080:8080 --name forum dockerize
+docker container run -p 8080:8080 --name real-time-forum dockerize
 ```
 
 ## Contributors 

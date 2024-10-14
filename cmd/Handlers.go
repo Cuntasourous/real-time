@@ -9,9 +9,8 @@ import (
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-
 	// Get the session ID from the cookie
-	sessionID, _ := getCookie(r,w, CookieName)
+	sessionID, _ := getCookie(r, w, CookieName)
 	var userID int
 	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
 	if err != nil {
@@ -50,7 +49,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	var posts []struct {
 		Post
-		IsLiked bool
+		IsLiked    bool
 		IsDisliked bool
 	}
 
@@ -79,11 +78,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		posts = append(posts, struct {
 			Post
-			IsLiked bool
+			IsLiked    bool
 			IsDisliked bool
 		}{
-			Post:    post,
-			IsLiked: isLiked,
+			Post:       post,
+			IsLiked:    isLiked,
 			IsDisliked: isDisliked,
 		})
 	}
@@ -100,18 +99,26 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		popularCategories = []PopularCategory{}
 	}
 
+	OnlineUsers, err := getOnlineUsers()
+	if err != nil {
+		fmt.Print("Error getting online users")
+		OnlineUsers = []OnlineUser{}
+	}
+
 	data := struct {
-		LoggedInUser    string
-		Posts           []struct {
+		LoggedInUser string
+		Posts        []struct {
 			Post
-			IsLiked bool
+			IsLiked    bool
 			IsDisliked bool
 		}
 		PopularCategory []PopularCategory
+		OnlineUsers     []OnlineUser
 	}{
 		LoggedInUser:    username,
 		Posts:           posts,
 		PopularCategory: popularCategories,
+		OnlineUsers:     OnlineUsers,
 	}
 
 	t, err := template.ParseFiles("templates/index.html")
@@ -139,4 +146,192 @@ func HandleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("handleRoot: User not authenticated, redirecting to /login")
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func getOnlineUsers() ([]OnlineUser, error) {
+	query := `
+    SELECT user_id, username
+    FROM users
+    WHERE is_online = TRUE
+    ORDER BY username
+    `
+
+	rows, err := Db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var onlineUsers []OnlineUser
+	for rows.Next() {
+		var user OnlineUser
+		if err := rows.Scan(&user.UserID, &user.Username); err != nil {
+			return nil, err
+		}
+		onlineUsers = append(onlineUsers, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return onlineUsers, nil
+}
+
+func getAllUsers() ([]OnlineUser, error) {
+	var users []OnlineUser
+	rows, err := Db.Query("SELECT user_id, username FROM users") // Adjust your query as needed
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user OnlineUser
+		if err := rows.Scan(&user.UserID, &user.Username); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func ChatHandler(w http.ResponseWriter, r *http.Request) {
+	receiverID := r.URL.Query().Get("receiver_id")
+
+	// Get the session ID from the cookie
+	sessionID, _ := getCookie(r, w, CookieName)
+	var userID int
+	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
+	if err != nil {
+		fmt.Println("guest")
+	}
+
+	var username string
+	err = Db.QueryRow("SELECT username FROM users WHERE user_id = ?", userID).Scan(&username)
+	if err != nil {
+		username = ""
+	}
+
+	// OnlineUsers, err := getOnlineUsers()
+	// if err != nil {
+	// 	fmt.Print("Error getting online users")
+	// 	OnlineUsers = []OnlineUser{}
+	// }
+
+	// receiverID := r.URL.Query().Get("receiver_id")
+	// If receiverID is empty, try to get the last chatted user
+	if receiverID == "" {
+		lastReceiverID, err := getLastReceiverID(userID) // A function to fetch the last receiver ID
+		if err != nil {
+			log.Println("Error retrieving last receiver ID:", err)
+			receiverID = "1" // Fallback to default user ID
+		} else {
+			receiverID = lastReceiverID
+		}
+	}
+
+	// Get all users instead of online users
+	allUsers, err := getAllUsers()
+	if err != nil {
+		log.Println("Error getting all users:", err)
+		allUsers = []OnlineUser{}
+	}
+
+	messages, err := GetChatMessages(userID, receiverID)
+	if err != nil {
+		log.Println("Error retrieving messages:", err)
+		messages = []ChatMessage{} // Initialize messages as empty slice
+	}
+
+	data := struct {
+		LoggedInUser   string
+		AllUsers       []OnlineUser
+		Messages       []ChatMessage
+		ReceiverID     string
+		LoggedInUserID int
+	}{
+		LoggedInUser:   username,
+		AllUsers:       allUsers,
+		Messages:       messages,
+		ReceiverID:     receiverID,
+		LoggedInUserID: userID,
+	}
+
+	t, err := template.ParseFiles("templates/chat.html")
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		return
+	}
+	err = t.Execute(w, data)
+	if err != nil {
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		return
+	}
+}
+
+func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		// Get the sender ID from the session
+		sessionID, _ := getCookie(r, w, CookieName)
+		var userID int
+		err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
+		if err != nil {
+			http.Error(w, "Failed to get user ID", http.StatusInternalServerError)
+			return
+		}
+
+		// Get the receiver ID from the query parameters
+		receiverID := r.URL.Query().Get("receiver_id")
+		message := r.FormValue("comment_text")
+
+		// Insert the message into the Chats table
+		_, err = Db.Exec("INSERT INTO Chats (sender_id, receiver_id, message) VALUES (?, ?, ?)", userID, receiverID, message)
+		if err != nil {
+			http.Error(w, "Failed to send message", http.StatusInternalServerError)
+			return
+		}
+
+		// Redirect back to the chat page with the receiver ID
+		http.Redirect(w, r, "/chat?receiver_id="+receiverID, http.StatusSeeOther)
+	}
+}
+
+func getLastReceiverID(userID int) (string, error) {
+	var lastReceiverID string
+	err := Db.QueryRow(`
+        SELECT CASE 
+            WHEN sender_id = ? THEN receiver_id 
+            ELSE sender_id 
+        END AS last_receiver_id 
+        FROM Chats 
+        WHERE sender_id = ? OR receiver_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 1`, userID, userID, userID).Scan(&lastReceiverID)
+	return lastReceiverID, err
+}
+
+func GetChatMessages(userID int, receiverID string) ([]ChatMessage, error) {
+	var messages []ChatMessage
+	rows, err := Db.Query(`
+        SELECT c.sender_id, c.receiver_id, c.message, c.created_at, u.username
+        FROM Chats c
+        JOIN users u ON c.sender_id = u.user_id
+        WHERE (c.sender_id = ? AND c.receiver_id = ?) OR (c.sender_id = ? AND c.receiver_id = ?) 
+        ORDER BY c.created_at ASC`, userID, receiverID, receiverID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var msg ChatMessage
+		if err := rows.Scan(&msg.SenderID, &msg.ReceiverID, &msg.Message, &msg.CreatedAt, &msg.SenderName); err != nil {
+			return nil, err
+		}
+		messages = append(messages, msg)
+	}
+
+	return messages, nil
 }

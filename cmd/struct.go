@@ -52,6 +52,11 @@ type PopularCategory struct {
 	PostCount    int
 }
 
+type OnlineUser struct {
+	UserID   int    `json:"user_id"`
+	Username string `json:"username"`
+}
+
 type Session struct {
 	ID        string    `json:"id"`
 	UserID    int       `json:"user_id"`
@@ -90,9 +95,17 @@ type UserProfile struct {
 	Posts          []Post
 	Comments       []Comment
 	LikedPosts     []Post
-	DislikedPosts     []Post
+	DislikedPosts  []Post
 	PostCount      int
 	CommentCount   int
 	LikedPostCount int
-	DislikeCount int
+	DislikeCount   int
+}
+
+type ChatMessage struct {
+	SenderID   int       // ID of the sender
+	ReceiverID int       // ID of the receiver
+	Message    string    // The content of the message
+	CreatedAt  time.Time // Timestamp of when the message was sent
+	SenderName string
 }

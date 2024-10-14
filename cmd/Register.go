@@ -128,6 +128,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Update user's online status to true
+		_, err = Db.Exec("UPDATE users SET is_online = TRUE WHERE user_id = ?", userID)
+		if err != nil {
+			log.Printf("Error updating online status: %v", err)
+			fmt.Printf("%d is online", userID)
+			ErrorHandler(w, r, http.StatusInternalServerError)
+			return
+		}
+
 		// Set the session cookie
 		cookie := &http.Cookie{
 			Name:     "forum_session",

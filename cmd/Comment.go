@@ -135,6 +135,14 @@ func HandleAddCommentAJAX(w http.ResponseWriter, r *http.Request) {
 
 	commentID, _ := result.LastInsertId()
 
+	// Update the user's last active time
+	err = updateUserLastActivity(userID)
+	if err != nil {
+		log.Printf("Error updating last active time: %v", err)
+		ErrorHandler(w, r, http.StatusInternalServerError)
+		return
+	}
+
 	// Fetch the newly created comment
 	var comment Comment
 	err = Db.QueryRow(`

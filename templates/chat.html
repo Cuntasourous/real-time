@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lets Chat</title>
+    <link href="/static/css/home.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+</head>
+<body>
+    <div id="topbar">
+        <img src="/static/img/LOGO.png" width="100px" height="auto" alt="logo"/>
+    </div>
+    <div id="flex">
+        <div id="navbar">
+            <!-- home -->
+            <a href="/home">
+                <div class="nav-item">
+                    <img src="/static/img/home-icon.png" alt="home">
+                    Home
+                </div>
+            </a>
+            <!-- home -->
+            <a href="/view_categories">
+                <div class="nav-item">
+                    <img src="/static/img/categories.png" alt="category">
+                    Categories
+                </div>
+            </a>
+            <!-- create post -->
+            {{if .LoggedInUser}}
+            <a href="/create_post">
+                <div class="nav-item">
+                    <img src="/static/img/addpost.png" alt="post">
+                    Create Post
+                </div>
+            </a>
+            {{end}}
+            <!-- chat -->
+            {{if .LoggedInUser}}
+            <a href="/chat">
+                <div class="active">
+                    <img src="/static/img/chat.png" alt="chat">
+                    Chat
+                </div>
+            </a>
+            {{end}}
+            <!-- profile -->
+            {{if .LoggedInUser}}
+            <a href="/profile">
+                <div class="nav-item">
+                    <img src="/static/img/user.png" alt="home">
+                    Profile
+                </div>
+            </a>
+            {{end}}
+            <!-- logout -->
+            {{if .LoggedInUser}}
+            <a href="/logout" onclick="logout()">
+                <div class="nav-item">
+                    <img src="/static/img/leave.png" alt="home">
+                    Log out
+                </div>
+            </a>
+            {{else}}
+            <a href="/login">
+                <div class="nav-item">
+                    <img src="/static/img/switch.png" alt="home">
+                    Login
+                </div>
+            </a>
+            {{end}}
+        </div>
+        <div id="middle-posts">
+            <div class="mobile-navbar">
+                <a href="/home">
+                    <div class="active">
+                        <img src="/static/img/home-icon.png" alt="home">
+                        Home
+                    </div>
+                </a>
+                
+                <a href="/view_categories">
+                    <div class="nav-item">
+                        <img src="/static/img/categories.png" alt="category">
+                        Categories
+                    </div>
+                </a>
+                <!-- create post -->
+                {{if .LoggedInUser}}
+                <a href="/create_post">
+                    <div class="nav-item">
+                        <img src="/static/img/addpost.png" alt="home">
+                        Create Post
+                    </div>
+                </a>
+                {{end}}
+                <!-- profile -->
+                {{if .LoggedInUser}}
+                <a href="/profile">
+                    <div class="nav-item">
+                        <img src="/static/img/user.png" alt="home">
+                        Profile
+                    </div>
+                </a>
+                {{end}}
+                <!-- logout -->
+                {{if .LoggedInUser}}
+                <a href="/logout">
+                    <div class="nav-item">
+                        <img src="/static/img/leave.png" alt="home">
+                        Log out
+                    </div>
+                </a>
+                {{else}}
+                <a href="/login">
+                    <div class="nav-item">
+                        <img src="/static/img/switch.png" alt="home">
+                        Login
+                    </div>
+                </a>
+                {{end}}
+            </div>
+            <div class="chat-container">
+                <div class="chat">
+                    <div class="chatlogs">
+                        <!-- chatlogs -->
+                        {{if .Messages}}
+                            {{range .Messages}}
+                                <div class="chat-message {{if eq .SenderID $.LoggedInUserID}}sent{{else}}received{{end}}">
+                                    <div class="message-content">
+                                        <strong class="sender-name">
+                                            {{if eq .SenderID $.LoggedInUserID}}
+                                                You
+                                            {{else}}
+                                                {{.SenderName}}
+                                            {{end}}
+                                        </strong> 
+                                        <p class="message-text">{{.Message}}</p>
+                                        <!-- <span class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span> -->
+                                    </div>
+                                </div>
+                            {{else}}
+                                <p>No messages yet. Start the conversation!</p>
+                            {{end}}
+                        {{else}}
+                            <p>No messages yet. Start the conversation!</p>
+                        {{end}}
+                    </div>
+                    <div class="text-box">
+                        <form method="POST" action="/send-message?receiver_id={{.ReceiverID}}">
+                            <textarea name="comment_text" placeholder="Start Messaging..." required></textarea>
+                            <button id="reply-button" type="submit">Send</button>
+                        </form>
+                    </div>
+                </div>
+                <div id="news">
+                    <div id="popular-category-box">
+                        <h4>Users</h4>
+                        {{range .AllUsers}}
+                        <!-- category list item -->
+                        <a href="/chat?receiver_id={{.UserID}}">
+                            <div class="category-box">
+                                <div class="flex">
+                                    <img src="/static/img/category - pink.png" alt="category-icon">
+                                    <h6>{{.Username}}</h6>
+                                </div>
+                                <p>this user is online</p>
+                            </div>
+                        </a>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/index.js"></script>
+    <script src="/js/keepHeartRed.js"></script>
+    <script src="/js/CloseBrowserLogout.js"></script>
+    <style>
+        .chatlogs{
+            font-family: 'sora';
+            padding: 20px 20px 0 20px;
+        }
+    
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+    
+        .message-content {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            position: relative;
+            /* margin-bottom: -10px; */
+            /* margin-bottom: 20px; */
+        }
+    
+        .sent {
+            justify-content: flex-end;
+        }
+    
+        .received {
+            justify-content: flex-start;
+        }
+    
+        .sent .message-content {
+            /* background-color: #F7F7F7;
+            color: #84879A; */
+            background-color: #E97A6E;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+    
+        .received .message-content {
+            /* background-color: #E97A6E;
+            color: white; */
+            background-color: #F7F7F7;
+            color: #84879A;
+            /* color: #84879A; */
+        }
+    
+        .sender-name {
+            font-size: 0.7em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+    
+        .message-text {
+            margin: 0;
+            word-wrap: break-word;
+        }
+    
+        .timestamp {
+            font-size: 0.7em;
+            color: #999;
+            display: block;
+            margin-top: 5px;
+            text-align: right;
+        }
+    
+        .sent .timestamp {
+            color: #999;
+        }
+    </style>
+</body>
+</html>
