@@ -264,7 +264,7 @@
 }
 
 .chat-container .chat .chatlogs{
-  height: 88%;
+  height: 80%;
   overflow-y: scroll;
   /* background-color: blueviolet; */
   /* z-index: 1; */
@@ -280,7 +280,7 @@
   margin: 0 auto;
   width: 58vw;
   position: fixed;
-  margin-top: -19px;
+  margin-top: 30px;
 }
 
 .chat .text-box form{

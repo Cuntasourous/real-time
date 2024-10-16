@@ -1,11 +1,13 @@
 package forum
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -268,6 +270,47 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ErrorHandler(w, r, http.StatusInternalServerError)
 		return
+	}
+}
+
+func ChatUpdatesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+		return
+	}
+
+	sessionID, _ := getCookie(r, w, CookieName)
+	var userID int
+	err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+
+	receiverID := r.URL.Query().Get("receiver_id")
+
+	for {
+		messages, err := GetChatMessages(userID, receiverID)
+		if err != nil {
+			log.Println("Error retrieving messages:", err)
+			return
+		}
+
+		data, err := json.Marshal(messages)
+		if err != nil {
+			log.Println("Error marshalling messages:", err)
+			return
+		}
+
+		fmt.Fprintf(w, "data: %s\n\n", data)
+		flusher.Flush()
+
+		time.Sleep(2 * time.Second) // Poll every 2 seconds
 	}
 }
 

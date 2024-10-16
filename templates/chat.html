@@ -124,25 +124,28 @@
             </div>
             <div class="chat-container">
                 <div class="chat">
-                    <div class="chatlogs">
+                    <div class="chatlogs" id="chatContainer" 
+                    data-receiver-id="{{.ReceiverID}}" 
+                    data-logged-in-user-id="{{.LoggedInUserID}}">
                         <!-- chatlogs -->
                         {{if .Messages}}
+                            {{$lastSender := 0}}
                             {{range .Messages}}
-                                <div class="chat-message {{if eq .SenderID $.LoggedInUserID}}sent{{else}}received{{end}}">
+                                <div class="chat-message {{if eq .SenderID $.LoggedInUserID}}sent{{else}}received{{end}}{{if eq .SenderID $lastSender}} consecutive{{end}}">
                                     <div class="message-content">
-                                        <strong class="sender-name">
-                                            {{if eq .SenderID $.LoggedInUserID}}
-                                                You
-                                            {{else}}
-                                                {{.SenderName}}
-                                            {{end}}
-                                        </strong> 
+                                        {{if ne .SenderID $lastSender}}
+                                            <strong class="sender-name">
+                                                {{if eq .SenderID $.LoggedInUserID}}
+                                                    You
+                                                {{else}}
+                                                    {{.SenderName}}
+                                                {{end}}
+                                            </strong> 
+                                        {{end}}
                                         <p class="message-text">{{.Message}}</p>
-                                        <!-- <span class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span> -->
                                     </div>
                                 </div>
-                            {{else}}
-                                <p>No messages yet. Start the conversation!</p>
+                                {{$lastSender = .SenderID}}
                             {{end}}
                         {{else}}
                             <p>No messages yet. Start the conversation!</p>
@@ -194,7 +197,7 @@
             padding: 10px 15px;
             border-radius: 18px;
             position: relative;
-            /* margin-bottom: -10px; */
+            margin-bottom: -10px;
             /* margin-bottom: 20px; */
         }
     
@@ -247,5 +250,93 @@
             color: #999;
         }
     </style>
+    <script>
+        function updateChat(messages) {
+    chatContainer.innerHTML = '';
+    var lastSender = null;
+    messages.forEach(function(message) {
+        var messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message ' + (message.SenderID == loggedInUserId ? 'sent' : 'received');
+        if (lastSender === message.SenderID) {
+            messageDiv.classList.add('consecutive');
+        }
+
+        var messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+
+        if (lastSender !== message.SenderID) {
+            var senderName = document.createElement('strong');
+            senderName.className = 'sender-name';
+            senderName.textContent = message.SenderID == loggedInUserId ? 'You' : message.SenderName;
+            messageContent.appendChild(senderName);
+        }
+
+        var messageText = document.createElement('p');
+        messageText.className = 'message-text';
+        messageText.textContent = message.Message;
+        messageContent.appendChild(messageText);
+
+        messageDiv.appendChild(messageContent);
+        chatContainer.appendChild(messageDiv);
+        
+        lastSender = message.SenderID;
+    });
+
+    // Scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var chatContainer = document.getElementById('chatContainer');
+            var receiverId = chatContainer.getAttribute('data-receiver-id');
+            var loggedInUserId = parseInt(chatContainer.getAttribute('data-logged-in-user-id'), 10);
+        
+            function updateChat(messages) {
+                chatContainer.innerHTML = '';
+                var lastSender = null;
+                messages.forEach(function(message) {
+                    var messageDiv = document.createElement('div');
+                    messageDiv.className = 'chat-message ' + (message.SenderID == loggedInUserId ? 'sent' : 'received');
+                    if (lastSender === message.SenderID) {
+                        messageDiv.classList.add('consecutive');
+                    }
+        
+                    var messageContent = document.createElement('div');
+                    messageContent.className = 'message-content';
+        
+                    if (lastSender !== message.SenderID) {
+                        var senderName = document.createElement('strong');
+                        senderName.className = 'sender-name';
+                        senderName.textContent = message.SenderID == loggedInUserId ? 'You' : message.SenderName;
+                        messageContent.appendChild(senderName);
+                    }
+        
+                    var messageText = document.createElement('p');
+                    messageText.className = 'message-text';
+                    messageText.textContent = message.Message;
+                    messageContent.appendChild(messageText);
+        
+                    messageDiv.appendChild(messageContent);
+                    chatContainer.appendChild(messageDiv);
+                    
+                    lastSender = message.SenderID;
+                });
+        
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        
+            if (receiverId && loggedInUserId) {
+                var evtSource = new EventSource('/chat-updates?receiver_id=' + receiverId);
+                evtSource.onmessage = function(event) {
+                    var messages = JSON.parse(event.data);
+                    updateChat(messages);
+                };
+            } else {
+                console.error('Required data attributes are missing.');
+            }
+        });
+        </script>
 </body>
 </html>
