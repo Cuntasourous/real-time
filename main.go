@@ -36,6 +36,7 @@ func main() {
 	http.HandleFunc("/chat", forum.ChatHandler)
 	http.HandleFunc("/chat-updates", forum.ChatUpdatesHandler)
 	http.HandleFunc("/send-message", forum.SendMessageHandler)
+	http.HandleFunc("/api/new-messages", forum.NewMessagesHandler)
 	http.HandleFunc("/debug", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Debug: Request to %s", r.URL.Path)
 	})

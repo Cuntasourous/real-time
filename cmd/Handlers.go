@@ -1,11 +1,13 @@
 package forum
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -180,17 +182,43 @@ func getOnlineUsers() ([]OnlineUser, error) {
 	return onlineUsers, nil
 }
 
-func getAllUsers() ([]OnlineUser, error) {
-	var users []OnlineUser
-	rows, err := Db.Query("SELECT user_id, username FROM users") // Adjust your query as needed
+func getAllUsers(currentUserID int) ([]OnlineUser, error) {
+	query := `
+        WITH LastMessages AS (
+            SELECT 
+                CASE 
+                    WHEN sender_id = ? THEN receiver_id
+                    WHEN receiver_id = ? THEN sender_id
+                END as other_user_id,
+                MAX(created_at) as last_message_time
+            FROM Chats
+            WHERE sender_id = ? OR receiver_id = ?
+            GROUP BY other_user_id
+        )
+        SELECT 
+            u.user_id,
+            u.username,
+            u.is_online,  -- Include the is_online field
+            lm.last_message_time
+        FROM users u
+        LEFT JOIN LastMessages lm ON u.user_id = lm.other_user_id
+        WHERE u.user_id != ?
+        ORDER BY 
+            lm.last_message_time DESC NULLS LAST,
+            u.username ASC
+    `
+
+	rows, err := Db.Query(query, currentUserID, currentUserID, currentUserID, currentUserID, currentUserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	var users []OnlineUser
 	for rows.Next() {
 		var user OnlineUser
-		if err := rows.Scan(&user.UserID, &user.Username); err != nil {
+		var lastMessageTime sql.NullString
+		if err := rows.Scan(&user.UserID, &user.Username, &user.IsOnline, &lastMessageTime); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -235,7 +263,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get all users instead of online users
-	allUsers, err := getAllUsers()
+	allUsers, err := getAllUsers(userID)
 	if err != nil {
 		log.Println("Error getting all users:", err)
 		allUsers = []OnlineUser{}
@@ -377,4 +405,89 @@ func GetChatMessages(userID int, receiverID string) ([]ChatMessage, error) {
 	}
 
 	return messages, nil
+}
+
+func ChatHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	receiverID := r.URL.Query().Get("receiver_id")
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+
+	rows, err := Db.Query(`
+        SELECT id, sender_id, receiver_id, message, created_at, 
+               (SELECT username FROM users WHERE user_id = sender_id) as sender_name
+        FROM Chats
+        WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?`, receiverID, receiverID, receiverID, receiverID, limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var messages []ChatMessage
+	for rows.Next() {
+		var msg ChatMessage
+		if err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Message, &msg.CreatedAt, &msg.SenderName); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		messages = append(messages, msg)
+	}
+
+	// Reverse the messages to display in chronological order (as the frontend prepends them)
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
+	json.NewEncoder(w).Encode(messages)
+}
+
+func NewMessagesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+
+	receiverID := r.URL.Query().Get("receiver_id")
+	since := r.URL.Query().Get("since")
+
+	sessionID, _ := getCookie(r, w, CookieName)
+	var userID int
+	if err := Db.QueryRow("SELECT user_id FROM sessions WHERE id = ?", sessionID).Scan(&userID); err != nil {
+		json.NewEncoder(w).Encode([]ChatMessage{})
+		return
+	}
+
+	// Use a prepared statement for better performance
+	stmt, err := Db.Prepare(`
+        SELECT c.sender_id, c.receiver_id, c.message, c.created_at, u.username
+        FROM Chats c
+        JOIN users u ON c.sender_id = u.user_id
+        WHERE ((c.sender_id = ? AND c.receiver_id = ?) OR (c.sender_id = ? AND c.receiver_id = ?))
+        AND c.created_at > ?
+        ORDER BY c.created_at ASC
+        LIMIT 50`) // Add a limit to prevent excessive data transfer
+	if err != nil {
+		json.NewEncoder(w).Encode([]ChatMessage{})
+		return
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(userID, receiverID, receiverID, userID, since)
+	if err != nil {
+		json.NewEncoder(w).Encode([]ChatMessage{})
+		return
+	}
+	defer rows.Close()
+
+	messages := make([]ChatMessage, 0)
+	for rows.Next() {
+		var msg ChatMessage
+		if err := rows.Scan(&msg.SenderID, &msg.ReceiverID, &msg.Message, &msg.CreatedAt, &msg.SenderName); err != nil {
+			continue
+		}
+		messages = append(messages, msg)
+	}
+
+	json.NewEncoder(w).Encode(messages)
 }

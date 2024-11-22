@@ -127,6 +127,9 @@
                     <div class="chatlogs" id="chatContainer" 
                     data-receiver-id="{{.ReceiverID}}" 
                     data-logged-in-user-id="{{.LoggedInUserID}}">
+                    <div id="loading-messages" style="display: none; text-align: center; padding: 10px;">
+                        Loading more messages...
+                    </div>
                         <!-- chatlogs -->
                         {{if .Messages}}
                             {{$lastSender := 0}}
@@ -169,7 +172,13 @@
                                     <img src="/static/img/category - pink.png" alt="category-icon">
                                     <h6>{{.Username}}</h6>
                                 </div>
-                                <p>this user is online</p>
+                                <p>
+                                    {{if .IsOnline}} <!-- Check if the user is online -->
+                                        This user is online
+                                    {{else}}
+                                        This user is offline
+                                    {{end}}
+                                </p>
                             </div>
                         </a>
                         {{end}}
@@ -181,6 +190,7 @@
     <script src="/js/index.js"></script>
     <script src="/js/keepHeartRed.js"></script>
     <script src="/js/CloseBrowserLogout.js"></script>
+    <script src="/js/throttle.js"></script>
     <style>
         .chatlogs{
             font-family: 'sora';
@@ -249,94 +259,250 @@
         .sent .timestamp {
             color: #999;
         }
+
+        #loading-messages {
+            color: #84879A;
+            font-size: 0.9em;
+            padding: 10px;
+            background-color: #f7f7f7;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
     </style>
     <script>
-        function updateChat(messages) {
-    chatContainer.innerHTML = '';
-    var lastSender = null;
-    messages.forEach(function(message) {
-        var messageDiv = document.createElement('div');
-        messageDiv.className = 'chat-message ' + (message.SenderID == loggedInUserId ? 'sent' : 'received');
-        if (lastSender === message.SenderID) {
-            messageDiv.classList.add('consecutive');
-        }
+       document.addEventListener('DOMContentLoaded', function () {
+    const chatContainer = document.getElementById('chatContainer');
+    const receiverId = chatContainer.getAttribute('data-receiver-id');
+    const loggedInUserId = parseInt(chatContainer.getAttribute('data-logged-in-user-id'), 10);
 
-        var messageContent = document.createElement('div');
+    let offset = 0;
+    const limit = 10;
+    let isLoading = false;
+    let allMessagesLoaded = false;
+    let userHasScrolled = false;
+    let lastMessageTime = null;
+
+    async function loadMessages(initialLoad = false) {
+        if (isLoading || allMessagesLoaded) return;
+
+        isLoading = true;
+        if (!initialLoad) document.getElementById('loading-messages').style.display = 'block';
+
+        try {
+            const response = await fetch(`/chat-history?receiver_id=${receiverId}&offset=${offset}&limit=${limit}`);
+            const messages = await response.json();
+
+            if (messages.length === 0) {
+                allMessagesLoaded = true;
+                return;
+            }
+
+            offset += messages.length;
+
+            if (initialLoad) {
+                messages.forEach(message => {
+                    const messageDiv = createMessageElement(message, loggedInUserId);
+                    chatContainer.appendChild(messageDiv);
+                });
+                scrollToBottom();
+                if (messages.length > 0) {
+                    lastMessageTime = new Date(messages[messages.length - 1].CreatedAt);
+                }
+            } else {
+                const currentScrollHeight = chatContainer.scrollHeight;
+                messages.reverse().forEach(message => {
+                    const messageDiv = createMessageElement(message, loggedInUserId);
+                    chatContainer.prepend(messageDiv);
+                });
+                chatContainer.scrollTop = chatContainer.scrollHeight - currentScrollHeight;
+            }
+        } catch (error) {
+            console.error('Error loading messages:', error);
+        } finally {
+            isLoading = false;
+            if (!initialLoad) document.getElementById('loading-messages').style.display = 'none';
+        }
+    }
+
+    function createMessageElement(message, loggedInUserId) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${message.SenderID === loggedInUserId ? 'sent' : 'received'}`;
+
+        const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
 
-        if (lastSender !== message.SenderID) {
-            var senderName = document.createElement('strong');
+        if (message.SenderName) {
+            const senderName = document.createElement('strong');
             senderName.className = 'sender-name';
-            senderName.textContent = message.SenderID == loggedInUserId ? 'You' : message.SenderName;
+            senderName.textContent = message.SenderName;
             messageContent.appendChild(senderName);
         }
 
-        var messageText = document.createElement('p');
+        const messageText = document.createElement('p');
         messageText.className = 'message-text';
         messageText.textContent = message.Message;
-        messageContent.appendChild(messageText);
 
+        messageContent.appendChild(messageText);
         messageDiv.appendChild(messageContent);
-        chatContainer.appendChild(messageDiv);
+
+        return messageDiv;
+    }
+
+    function scrollToBottom() {
+        const isScrolledNearBottom = chatContainer.scrollHeight - chatContainer.clientHeight <= chatContainer.scrollTop + 100;
         
-        lastSender = message.SenderID;
+        if (!userHasScrolled || isScrolledNearBottom) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            userHasScrolled = false;
+        }
+    }
+
+    // Track user scroll
+    chatContainer.addEventListener('scroll', () => {
+        const isScrolledNearBottom = chatContainer.scrollHeight - chatContainer.clientHeight <= chatContainer.scrollTop + 100;
+        
+        if (chatContainer.scrollTop === 0) {
+            loadMessages();
+        }
+
+        userHasScrolled = !isScrolledNearBottom;
     });
 
-    // Scroll to bottom
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var chatContainer = document.getElementById('chatContainer');
-            var receiverId = chatContainer.getAttribute('data-receiver-id');
-            var loggedInUserId = parseInt(chatContainer.getAttribute('data-logged-in-user-id'), 10);
-        
-            function updateChat(messages) {
-                chatContainer.innerHTML = '';
-                var lastSender = null;
-                messages.forEach(function(message) {
-                    var messageDiv = document.createElement('div');
-                    messageDiv.className = 'chat-message ' + (message.SenderID == loggedInUserId ? 'sent' : 'received');
-                    if (lastSender === message.SenderID) {
-                        messageDiv.classList.add('consecutive');
-                    }
-        
-                    var messageContent = document.createElement('div');
-                    messageContent.className = 'message-content';
-        
-                    if (lastSender !== message.SenderID) {
-                        var senderName = document.createElement('strong');
-                        senderName.className = 'sender-name';
-                        senderName.textContent = message.SenderID == loggedInUserId ? 'You' : message.SenderName;
-                        messageContent.appendChild(senderName);
-                    }
-        
-                    var messageText = document.createElement('p');
-                    messageText.className = 'message-text';
-                    messageText.textContent = message.Message;
-                    messageContent.appendChild(messageText);
-        
-                    messageDiv.appendChild(messageContent);
+    // Set up SSE for real-time updates
+    const eventSource = new EventSource(`/chat-updates?receiver_id=${receiverId}`);
+    eventSource.onmessage = function(event) {
+        const messages = JSON.parse(event.data);
+        if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            if (!lastMessageTime || new Date(lastMessage.CreatedAt) > lastMessageTime) {
+                chatContainer.innerHTML = ''; // Clear existing messages
+                messages.forEach(message => {
+                    const messageDiv = createMessageElement(message, loggedInUserId);
                     chatContainer.appendChild(messageDiv);
-                    
-                    lastSender = message.SenderID;
                 });
-        
-                // Scroll to bottom
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                lastMessageTime = new Date(lastMessage.CreatedAt);
+                scrollToBottom();
             }
-        
-            if (receiverId && loggedInUserId) {
-                var evtSource = new EventSource('/chat-updates?receiver_id=' + receiverId);
-                evtSource.onmessage = function(event) {
-                    var messages = JSON.parse(event.data);
-                    updateChat(messages);
-                };
-            } else {
-                console.error('Required data attributes are missing.');
+        }
+    };
+
+    // Clean up EventSource on page unload
+    window.addEventListener('beforeunload', () => {
+        eventSource.close();
+    });
+
+    // Initial load
+    loadMessages(true);
+});
+    </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.getElementById('chatContainer');
+        const receiverId = chatContainer.dataset.receiverId;
+        const loggedInUserId = parseInt(chatContainer.dataset.loggedInUserId);
+        let lastMessageTime = new Date().toISOString();
+        let isFetching = false;  // Prevent multiple simultaneous fetches
+    
+        async function fetchNewMessages() {
+            if (isFetching) return;  // Don't fetch if already fetching
+            
+            try {
+                isFetching = true;
+                const response = await fetch(`/api/new-messages?receiver_id=${receiverId}&since=${lastMessageTime}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const messages = await response.json();
+                
+                if (messages && messages.length > 0) {
+                    const fragment = document.createDocumentFragment();
+                    messages.forEach(message => {
+                        const messageDiv = createMessageElement(message, loggedInUserId);
+                        fragment.appendChild(messageDiv);
+                    });
+                    
+                    chatContainer.appendChild(fragment);
+                    lastMessageTime = messages[messages.length - 1].CreatedAt;
+                    
+                    // Only scroll if user is already at bottom
+                    const isAtBottom = chatContainer.scrollHeight - chatContainer.scrollTop === chatContainer.clientHeight;
+                    if (isAtBottom) {
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            } finally {
+                isFetching = false;
+            }
+        }
+    
+        function createMessageElement(message, loggedInUserId) {
+            const messageDiv = document.createElement('div');
+            const isSent = message.SenderID === loggedInUserId;
+            messageDiv.className = `chat-message ${isSent ? 'sent' : 'received'}`;
+            
+            // Use textContent for better security and performance
+            const senderName = document.createElement('strong');
+            senderName.className = 'sender-name';
+            senderName.textContent = isSent ? 'You' : message.SenderName;
+            
+            const messageText = document.createElement('p');
+            messageText.className = 'message-text';
+            messageText.textContent = message.Message;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.appendChild(senderName);
+            messageContent.appendChild(messageText);
+            
+            messageDiv.appendChild(messageContent);
+            return messageDiv;
+        }
+    
+        const messageForm = document.querySelector('.text-box form');
+        messageForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const textarea = this.querySelector('textarea');
+            const message = textarea.value.trim();
+            if (!message) return;
+            
+            const formData = new FormData(this);
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Failed to send message');
+                
+                textarea.value = '';
+                await fetchNewMessages();
+            } catch (error) {
+                console.error('Error sending message:', error);
             }
         });
-        </script>
+    
+        // Use RequestAnimationFrame for smoother polling
+        let frameId;
+        function poll() {
+            fetchNewMessages();
+            frameId = setTimeout(() => requestAnimationFrame(poll), 1000);  // Poll every second
+        }
+        
+        requestAnimationFrame(poll);
+        
+        // Cleanup on page leave
+        window.addEventListener('beforeunload', () => {
+            clearTimeout(frameId);
+        });
+    });
+    </script>
 </body>
 </html>
